@@ -3,7 +3,8 @@
     <div class="card">
         <DataTable v-model:filters="filters" :value="customers" paginator showGridlines :rows="10" dataKey="id"
             filterDisplay="menu" :loading="loading"
-            :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']">
+            :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']"
+            v-model:selection="selectedProduct" >
             <template #header>
                 <div class="flex justify-between">
                     <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -17,7 +18,8 @@
             </template>
             <template #empty> No customers found. </template>
             <template #loading> Loading customers data. Please wait. </template>
-            <Column field="name" header="Name" style="min-width: 12rem">
+            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+            <Column field="name" header="Invoice Number _Name" style="min-width: 12rem">
                 <template #body="{ data }">
                     {{ data.name }}
                 </template>
@@ -25,7 +27,7 @@
                     <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
                 </template>
             </Column>
-            <Column header="Country" filterField="country.name" style="min-width: 12rem">
+            <Column header="Sales Order No. _Country" filterField="country.name" style="min-width: 12rem">
                 <template #body="{ data }">
                     <div class="flex items-center gap-2">
                         <img alt="flag" src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png"
@@ -46,7 +48,7 @@
                     <div class="px-4 pt-0 pb-4 text-center">Customized Buttons</div>
                 </template>
             </Column>
-            <Column header="Agent" filterField="representative" :showFilterMatchModes="false"
+            <Column header="Customer Name _Agent" filterField="representative" :showFilterMatchModes="false"
                 :filterMenuStyle="{ width: '14rem' }" style="min-width: 14rem">
                 <template #body="{ data }">
                     <div class="flex items-center gap-2">
@@ -70,7 +72,7 @@
                     </MultiSelect>
                 </template>
             </Column>
-            <Column header="Date" filterField="date" dataType="date" style="min-width: 10rem">
+            <Column header="Invoice Date _Date" filterField="date" dataType="date" style="min-width: 10rem">
                 <template #body="{ data }">
                     {{ formatDate(data.date) }}
                 </template>
@@ -78,15 +80,7 @@
                     <DatePicker v-model="filterModel.value" dateFormat="mm/dd/yy" placeholder="mm/dd/yyyy" />
                 </template>
             </Column>
-            <Column header="Balance" filterField="balance" dataType="numeric" style="min-width: 10rem">
-                <template #body="{ data }">
-                    {{ formatCurrency(data.balance) }}
-                </template>
-                <template #filter="{ filterModel }">
-                    <InputNumber v-model="filterModel.value" mode="currency" currency="USD" locale="en-US" />
-                </template>
-            </Column>
-            <Column header="Status" field="status" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
+            <Column header="Payment Status _Status" field="status" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
                 <template #body="{ data }">
                     <Tag :value="data.status" :severity="getSeverity(data.status)" />
                 </template>
@@ -96,6 +90,14 @@
                             <Tag :value="slotProps.option" :severity="getSeverity(slotProps.option)" />
                         </template>
                     </Select>
+                </template>
+            </Column>
+            <Column header="Balance" filterField="balance" dataType="numeric" style="min-width: 10rem">
+                <template #body="{ data }">
+                    {{ formatCurrency(data.balance) }}
+                </template>
+                <template #filter="{ filterModel }">
+                    <InputNumber v-model="filterModel.value" mode="currency" currency="USD" locale="en-US" />
                 </template>
             </Column>
             <Column field="activity" header="Activity" :showFilterMatchModes="false" style="min-width: 12rem">
@@ -145,6 +147,8 @@ import InputNumber from 'primevue/inputnumber';
 import ProgressBar from 'primevue/progressbar';
 import Slider from 'primevue/slider';
 
+const products = ref();
+const selectedProduct = ref();
 const customers = ref();
 const filters = ref();
 const representatives = ref([
