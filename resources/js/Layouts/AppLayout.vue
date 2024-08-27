@@ -49,7 +49,13 @@ const logout = () => {
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                    Dashboard
+                                    Subscriptions to Enter
+                                </NavLink>
+                                <NavLink :href="route('dashboard')" :active="route().current('dashboard2')">
+                                    Confirm Delivery Requirement
+                                </NavLink>
+                                <NavLink :href="route('dashboard')" :active="route().current('dashboard3')">
+                                    Subscriptions to Deliver 
                                 </NavLink>
                             </div>
                         </div>
