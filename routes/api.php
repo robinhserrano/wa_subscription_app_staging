@@ -36,3 +36,5 @@ Route::get('/haha', function (Request $request) {
 Route::middleware('auth:sanctum')->resource('/filterSubs', FilterSubsController::class, [
     'except' => ['create', 'edit']
 ])->middleware('auth:sanctum');
+
+Route::post('/bulkStoreFilterSubs', [FilterSubsController::class, 'bulkStoreFilterSubs']);
