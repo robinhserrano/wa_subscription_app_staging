@@ -1,11 +1,10 @@
 <template>
     <ThemeSwitcher />
     <div class="card">
-        {{ filterSubs }}
-        <DataTable v-model:filters="filters" :value="filterSubs" paginator showGridlines :rows="10" dataKey="id"
+        <DataTable v-model:filters="filters" :value="customers" paginator showGridlines :rows="10" dataKey="id"
             filterDisplay="menu" :loading="loading"
             :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']"
-            v-model:selection="selectedProduct">
+            v-model:selection="selectedProduct" >
             <template #header>
                 <div class="flex justify-between">
                     <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -17,12 +16,12 @@
                     </IconField>
                 </div>
             </template>
-            <template #empty> No filterSubs found. </template>
-            <template #loading> Loading filterSubs data. Please wait. </template>
+            <template #empty> No customers found. </template>
+            <template #loading> Loading customers data. Please wait. </template>
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <Column field="name" header="Invoice Number _Name" style="min-width: 12rem">
                 <template #body="{ data }">
-                    {{ data.invoice_number }}
+                    {{ data.name }}
                 </template>
                 <template #filter="{ filterModel }">
                     <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
@@ -81,8 +80,7 @@
                     <DatePicker v-model="filterModel.value" dateFormat="mm/dd/yy" placeholder="mm/dd/yyyy" />
                 </template>
             </Column>
-            <Column header="Payment Status _Status" field="status" :filterMenuStyle="{ width: '14rem' }"
-                style="min-width: 12rem">
+            <Column header="Payment Status _Status" field="status" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
                 <template #body="{ data }">
                     <Tag :value="data.status" :severity="getSeverity(data.status)" />
                 </template>
@@ -149,13 +147,9 @@ import InputNumber from 'primevue/inputnumber';
 import ProgressBar from 'primevue/progressbar';
 import Slider from 'primevue/slider';
 
-let props = defineProps({
-    filterSubs: Object,
-});
-
 const products = ref();
 const selectedProduct = ref();
-// const filterSubs = ref();
+const customers = ref();
 const filters = ref();
 const representatives = ref([
     { name: 'Amy Elsner', image: 'amyelsner.png' },
@@ -173,12 +167,10 @@ const statuses = ref(['unqualified', 'qualified', 'new', 'negotiation', 'renewal
 const loading = ref(true);
 
 onMounted(() => {
-    // filterSubs.value = filterSubs
-    loading.value = false;
-    // CustomerService.getCustomersLarge().then((data) => {
-    //     filterSubs.value = getCustomers(data);
-    //     loading.value = false;
-    // });
+    CustomerService.getCustomersLarge().then((data) => {
+        customers.value = getCustomers(data);
+        loading.value = false;
+    });
 });
 
 
