@@ -1,10 +1,10 @@
 <template>
     <ThemeSwitcher />
     <div class="card">
-        <DataTable v-model:filters="filters" :value="customers" paginator showGridlines :rows="10" dataKey="id"
-            filterDisplay="menu" :loading="loading"
-            :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']"
-            v-model:selection="selectedProduct" >
+        <!-- {{ filterSubs }} -->
+        <DataTable v-model:filters="filters" :value="filterSubs" paginator :rows="50"
+            :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem" showGridlines dataKey="id"
+            filterDisplay="menu" :globalFilterFields="['customer_name', 'country.name', 'representative.name', 'balance', 'status']">>
             <template #header>
                 <div class="flex justify-between">
                     <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -16,12 +16,61 @@
                     </IconField>
                 </div>
             </template>
-            <template #empty> No customers found. </template>
-            <template #loading> Loading customers data. Please wait. </template>
+            <template #empty> No filterSubs found. </template>
+            <template #loading> Loading filterSubs data. Please wait. </template>
+            <Column field="invoice_number" header="Invoice Number" style="min-width: 10rem"></Column>
+            <Column field="sales_order_no" header="Sales Order No." style="min-width: 10rem"></Column>
+            <Column field="customer_name" header="Customer Name" style="min-width: 10rem" filterField="customer_name">
+                <!-- <template #body="{ data }">
+                    {{ data.name }}
+                </template> -->
+                <template #filter="{ filterModel }">
+                    <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
+                </template>
+            </Column>
+            <Column field="invoice_date" header="Invoice Date" filterField="invoice_date" dataType="date"
+                style="min-width: 10rem">
+                <template #filter="{ filterModel }">
+                    <DatePicker v-model="filterModel.value" dateFormat="yy/mm/dd" placeholder="yyyy/mm/dd" />
+                </template>
+            </Column>
+            <Column field="payment_status" header="Payment Status" style="min-width: 10rem"></Column>
+            <Column field="state_id" header="State" style="min-width: 10rem"></Column>
+            <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem"></Column>
+            <Column field="phone" header="Phone" style="min-width: 10rem"></Column>
+            <Column field="email" header="Email" style="min-width: 10rem"></Column>
+            <Column field="due_date" header="Due Date" style="min-width: 10rem"></Column>
+        </DataTable>
+        <nes-vue url="https://taiyuuki.github.io/nes-vue/Super Mario Bros (JU).nes" />
+        <!-- <DataTable v-model:filters="filters" :value="filterSubs" paginator showGridlines :rows="10" dataKey="id"
+            filterDisplay="menu" :loading="loading"
+            :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']"
+            v-model:selection="selectedProduct">
+            <template #header>
+                <div class="flex justify-between">
+                    <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
+                    <IconField>
+                        <InputIcon>
+                            <i class="pi pi-search" />
+                        </InputIcon>
+                        <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
+                    </IconField>
+                </div>
+            </template>
+            <template #empty> No filterSubs found. </template>
+            <template #loading> Loading filterSubs data. Please wait. </template>
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+            <Column field="invoice_number" header="Invoice Number _Name" style="min-width: 12rem">
+                <template #body="{ data }">
+                    {{ data.invoice_number }}
+                </template>
+                <template #filter="{ filterModel }">
+                    <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
+                </template>
+            </Column>
             <Column field="name" header="Invoice Number _Name" style="min-width: 12rem">
                 <template #body="{ data }">
-                    {{ data.name }}
+                    {{ data.invoice_number }}
                 </template>
                 <template #filter="{ filterModel }">
                     <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
@@ -80,7 +129,8 @@
                     <DatePicker v-model="filterModel.value" dateFormat="mm/dd/yy" placeholder="mm/dd/yyyy" />
                 </template>
             </Column>
-            <Column header="Payment Status _Status" field="status" :filterMenuStyle="{ width: '14rem' }" style="min-width: 12rem">
+            <Column header="Payment Status _Status" field="status" :filterMenuStyle="{ width: '14rem' }"
+                style="min-width: 12rem">
                 <template #body="{ data }">
                     <Tag :value="data.status" :severity="getSeverity(data.status)" />
                 </template>
@@ -124,7 +174,7 @@
                         inputId="verified-filter" />
                 </template>
             </Column>
-        </DataTable>
+        </DataTable> -->
     </div>
 </template>
 
@@ -146,10 +196,15 @@ import DatePicker from 'primevue/datepicker';
 import InputNumber from 'primevue/inputnumber';
 import ProgressBar from 'primevue/progressbar';
 import Slider from 'primevue/slider';
+import { NesVue } from 'nes-vue';
+
+let props = defineProps({
+    filterSubs: Object,
+});
 
 const products = ref();
 const selectedProduct = ref();
-const customers = ref();
+// const filterSubs = ref();
 const filters = ref();
 const representatives = ref([
     { name: 'Amy Elsner', image: 'amyelsner.png' },
@@ -167,24 +222,26 @@ const statuses = ref(['unqualified', 'qualified', 'new', 'negotiation', 'renewal
 const loading = ref(true);
 
 onMounted(() => {
-    CustomerService.getCustomersLarge().then((data) => {
-        customers.value = getCustomers(data);
-        loading.value = false;
-    });
+    // filterSubs.value = filterSubs
+    loading.value = false;
+    // CustomerService.getCustomersLarge().then((data) => {
+    //     filterSubs.value = getCustomers(data);
+    //     loading.value = false;
+    // });
 });
 
 
 const initFilters = () => {
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        'country.name': { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        representative: { value: null, matchMode: FilterMatchMode.IN },
-        date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
-        balance: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
-        status: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
-        activity: { value: [0, 100], matchMode: FilterMatchMode.BETWEEN },
-        verified: { value: null, matchMode: FilterMatchMode.EQUALS }
+        customer_name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        // 'country.name': { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        // representative: { value: null, matchMode: FilterMatchMode.IN },
+        invoice_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
+        // balance: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
+        // status: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
+        // activity: { value: [0, 100], matchMode: FilterMatchMode.BETWEEN },
+        // verified: { value: null, matchMode: FilterMatchMode.EQUALS }
     };
 };
 
