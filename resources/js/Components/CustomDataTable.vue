@@ -1,10 +1,14 @@
 <template>
-    <ThemeSwitcher />
+
     <div class="card">
-        <!-- {{ filterSubs }} -->
-        <DataTable v-model:filters="filters" :value="filterSubs" paginator :rows="50"
-            :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem" showGridlines dataKey="id"
-            filterDisplay="menu" :globalFilterFields="['customer_name', 'country.name', 'representative.name', 'balance', 'status']">>
+        {{ filters }}
+        {{ totalRecord }}
+        <!-- <Paginator :rows="10" :totalRecords="120" :rowsPerPageOptions="[10, 20, 30]"></Paginator> -->
+        <DataTable v-model:filters="filters" :value="filterSubs.data" lazy :loading="loading"
+            tableStyle="min-width: 50rem" showGridlines dataKey="id" filterDisplay="menu"
+            :globalFilterFields="['customer_name', 'country.name', 'representative.name', 'balance', 'status']"
+            :paginator="true" :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
+            @page="handlePageChange">
             <template #header>
                 <div class="flex justify-between">
                     <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -12,7 +16,8 @@
                         <InputIcon>
                             <i class="pi pi-search" />
                         </InputIcon>
-                        <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
+                        <InputText v-model="filters['global'].value" placeholder="Keyword Search"
+                            @input="handleSearch" />
                     </IconField>
                 </div>
             </template>
@@ -21,160 +26,22 @@
             <Column field="invoice_number" header="Invoice Number" style="min-width: 10rem"></Column>
             <Column field="sales_order_no" header="Sales Order No." style="min-width: 10rem"></Column>
             <Column field="customer_name" header="Customer Name" style="min-width: 10rem" filterField="customer_name">
-                <!-- <template #body="{ data }">
-                    {{ data.name }}
-                </template> -->
-                <template #filter="{ filterModel }">
-                    <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
-                </template>
             </Column>
-            <Column field="invoice_date" header="Invoice Date" filterField="invoice_date" dataType="date"
-                style="min-width: 10rem">
-                <template #filter="{ filterModel }">
-                    <DatePicker v-model="filterModel.value" dateFormat="yy/mm/dd" placeholder="yyyy/mm/dd" />
-                </template>
+            <Column field="invoice_date" header="Invoice Date" style="min-width: 10rem">
             </Column>
             <Column field="payment_status" header="Payment Status" style="min-width: 10rem"></Column>
             <Column field="state_id" header="State" style="min-width: 10rem"></Column>
             <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem"></Column>
             <Column field="phone" header="Phone" style="min-width: 10rem"></Column>
             <Column field="email" header="Email" style="min-width: 10rem"></Column>
-            <Column field="due_date" header="Due Date" style="min-width: 10rem"></Column>
+            <Column field="due_date" header="Due Date" style="min-width: 10rem" filterField="due_date" dataType="date">
+                <template #filter="{ filterModel }">
+                    <DatePicker v-model="filterModel.value" dateFormat="yy/mm/dd" placeholder="yyyy/mm/dd" />
+                </template>
+            </Column>
         </DataTable>
+
         <nes-vue url="https://taiyuuki.github.io/nes-vue/Super Mario Bros (JU).nes" />
-        <!-- <DataTable v-model:filters="filters" :value="filterSubs" paginator showGridlines :rows="10" dataKey="id"
-            filterDisplay="menu" :loading="loading"
-            :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']"
-            v-model:selection="selectedProduct">
-            <template #header>
-                <div class="flex justify-between">
-                    <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
-                    <IconField>
-                        <InputIcon>
-                            <i class="pi pi-search" />
-                        </InputIcon>
-                        <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
-                    </IconField>
-                </div>
-            </template>
-            <template #empty> No filterSubs found. </template>
-            <template #loading> Loading filterSubs data. Please wait. </template>
-            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-            <Column field="invoice_number" header="Invoice Number _Name" style="min-width: 12rem">
-                <template #body="{ data }">
-                    {{ data.invoice_number }}
-                </template>
-                <template #filter="{ filterModel }">
-                    <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
-                </template>
-            </Column>
-            <Column field="name" header="Invoice Number _Name" style="min-width: 12rem">
-                <template #body="{ data }">
-                    {{ data.invoice_number }}
-                </template>
-                <template #filter="{ filterModel }">
-                    <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
-                </template>
-            </Column>
-            <Column header="Sales Order No. _Country" filterField="country.name" style="min-width: 12rem">
-                <template #body="{ data }">
-                    <div class="flex items-center gap-2">
-                        <img alt="flag" src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png"
-                            :class="`flag flag-${data.country.code}`" style="width: 24px" />
-                        <span>{{ data.country.name }}</span>
-                    </div>
-                </template>
-                <template #filter="{ filterModel }">
-                    <InputText v-model="filterModel.value" type="text" placeholder="Search by country" />
-                </template>
-                <template #filterclear="{ filterCallback }">
-                    <Button type="button" icon="pi pi-times" @click="filterCallback()" severity="secondary"></Button>
-                </template>
-                <template #filterapply="{ filterCallback }">
-                    <Button type="button" icon="pi pi-check" @click="filterCallback()" severity="success"></Button>
-                </template>
-                <template #filterfooter>
-                    <div class="px-4 pt-0 pb-4 text-center">Customized Buttons</div>
-                </template>
-            </Column>
-            <Column header="Customer Name _Agent" filterField="representative" :showFilterMatchModes="false"
-                :filterMenuStyle="{ width: '14rem' }" style="min-width: 14rem">
-                <template #body="{ data }">
-                    <div class="flex items-center gap-2">
-                        <img :alt="data.representative.name"
-                            :src="`https://primefaces.org/cdn/primevue/images/avatar/${data.representative.image}`"
-                            style="width: 32px" />
-                        <span>{{ data.representative.name }}</span>
-                    </div>
-                </template>
-                <template #filter="{ filterModel }">
-                    <MultiSelect v-model="filterModel.value" :options="representatives" optionLabel="name"
-                        placeholder="Any">
-                        <template #option="slotProps">
-                            <div class="flex items-center gap-2">
-                                <img :alt="slotProps.option.name"
-                                    :src="`https://primefaces.org/cdn/primevue/images/avatar/${slotProps.option.image}`"
-                                    style="width: 32px" />
-                                <span>{{ slotProps.option.name }}</span>
-                            </div>
-                        </template>
-                    </MultiSelect>
-                </template>
-            </Column>
-            <Column header="Invoice Date _Date" filterField="date" dataType="date" style="min-width: 10rem">
-                <template #body="{ data }">
-                    {{ formatDate(data.date) }}
-                </template>
-                <template #filter="{ filterModel }">
-                    <DatePicker v-model="filterModel.value" dateFormat="mm/dd/yy" placeholder="mm/dd/yyyy" />
-                </template>
-            </Column>
-            <Column header="Payment Status _Status" field="status" :filterMenuStyle="{ width: '14rem' }"
-                style="min-width: 12rem">
-                <template #body="{ data }">
-                    <Tag :value="data.status" :severity="getSeverity(data.status)" />
-                </template>
-                <template #filter="{ filterModel }">
-                    <Select v-model="filterModel.value" :options="statuses" placeholder="Select One" showClear>
-                        <template #option="slotProps">
-                            <Tag :value="slotProps.option" :severity="getSeverity(slotProps.option)" />
-                        </template>
-                    </Select>
-                </template>
-            </Column>
-            <Column header="Balance" filterField="balance" dataType="numeric" style="min-width: 10rem">
-                <template #body="{ data }">
-                    {{ formatCurrency(data.balance) }}
-                </template>
-                <template #filter="{ filterModel }">
-                    <InputNumber v-model="filterModel.value" mode="currency" currency="USD" locale="en-US" />
-                </template>
-            </Column>
-            <Column field="activity" header="Activity" :showFilterMatchModes="false" style="min-width: 12rem">
-                <template #body="{ data }">
-                    <ProgressBar :value="data.activity" :showValue="false" style="height: 6px"></ProgressBar>
-                </template>
-                <template #filter="{ filterModel }">
-                    <Slider v-model="filterModel.value" range class="m-4"></Slider>
-                    <div class="flex items-center justify-between px-2">
-                        <span>{{ filterModel.value ? filterModel.value[0] : 0 }}</span>
-                        <span>{{ filterModel.value ? filterModel.value[1] : 100 }}</span>
-                    </div>
-                </template>
-            </Column>
-            <Column field="verified" header="Verified" dataType="boolean" bodyClass="text-center"
-                style="min-width: 8rem">
-                <template #body="{ data }">
-                    <i class="pi"
-                        :class="{ 'pi-check-circle text-green-500 ': data.verified, 'pi-times-circle text-red-500': !data.verified }"></i>
-                </template>
-                <template #filter="{ filterModel }">
-                    <label for="verified-filter" class="font-bold"> Verified </label>
-                    <Checkbox v-model="filterModel.value" :indeterminate="filterModel.value === null" binary
-                        inputId="verified-filter" />
-                </template>
-            </Column>
-        </DataTable> -->
     </div>
 </template>
 
@@ -197,6 +64,9 @@ import InputNumber from 'primevue/inputnumber';
 import ProgressBar from 'primevue/progressbar';
 import Slider from 'primevue/slider';
 import { NesVue } from 'nes-vue';
+import { router } from '@inertiajs/vue3';
+import Paginator from 'primevue/paginator';
+import debounce from 'lodash/debounce';
 
 let props = defineProps({
     filterSubs: Object,
@@ -206,46 +76,93 @@ const products = ref();
 const selectedProduct = ref();
 // const filterSubs = ref();
 const filters = ref();
-const representatives = ref([
-    { name: 'Amy Elsner', image: 'amyelsner.png' },
-    { name: 'Anna Fali', image: 'annafali.png' },
-    { name: 'Asiya Javayant', image: 'asiyajavayant.png' },
-    { name: 'Bernardo Dominic', image: 'bernardodominic.png' },
-    { name: 'Elwin Sharvill', image: 'elwinsharvill.png' },
-    { name: 'Ioni Bowcher', image: 'ionibowcher.png' },
-    { name: 'Ivan Magalhaes', image: 'ivanmagalhaes.png' },
-    { name: 'Onyama Limba', image: 'onyamalimba.png' },
-    { name: 'Stephen Shaw', image: 'stephenshaw.png' },
-    { name: 'XuXue Feng', image: 'xuxuefeng.png' }
-]);
+// const paginator = ref();
 const statuses = ref(['unqualified', 'qualified', 'new', 'negotiation', 'renewal', 'proposal']);
 const loading = ref(true);
+const currentPage = ref(0);
+const totalRecord = ref(100);
+const search = ref();
 
 onMounted(() => {
     // filterSubs.value = filterSubs
     loading.value = false;
+    totalRecord.value = props.filterSubs.total
+    //filterSubs.total;
     // CustomerService.getCustomersLarge().then((data) => {
     //     filterSubs.value = getCustomers(data);
     //     loading.value = false;
     // });
+    // paginator.value = {
+    //     // rows: 10, // Number of rows per page
+    //     // page: 1,  // Current page
+    //     // rowsPerPageOptions: [10, 25, 50],  // Options for rows per page
+    //     // totalRecords: 120
+    // }
+
 });
 
 
 const initFilters = () => {
+
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        customer_name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        // customer_name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
         // 'country.name': { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
         // representative: { value: null, matchMode: FilterMatchMode.IN },
-        invoice_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
+        // invoice_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
         // balance: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
         // status: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
         // activity: { value: [0, 100], matchMode: FilterMatchMode.BETWEEN },
         // verified: { value: null, matchMode: FilterMatchMode.EQUALS }
+        due_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
     };
 };
 
 initFilters();
+
+
+const handlePageChange = (event) => {
+    currentPage.value = event.page + 1 // Adjusting because page index is 0-based
+    fetchData(event)
+}
+
+const handleSearch = (event) => {
+    // console.log(event)
+    search.value = event.target.value
+    console.log(event.target.value)
+    debounce(fetchData(event), 300);
+};
+
+
+
+const fetchData = async (event) => {
+    // loading.value = true
+    var page = (parseInt(event.page + 1, 10) || 1)
+    // var search = event.target.value
+  
+    try {
+        const response = await router.get('/dashboard', {
+            page: page,
+            search:search.value, 
+            // filters: filters.value,
+            // Add other parameters if needed
+        }, {
+            // only: ['dashboard'],
+            preserveState: true,
+            replace: false,
+            onSuccess: (page) => {
+                console.log(page)
+                // filterSubs.value.data = page.props.filterSubs.data
+                // totalRecords.value = page.props.totalRecords // Make sure to handle total records if paginated
+            },
+        })
+    } catch (error) {
+        console.error('Error fetching data:', error)
+    } finally {
+        loading.value = false
+    }
+}
+
 
 const formatDate = (value) => {
     return value.toLocaleDateString('en-US', {

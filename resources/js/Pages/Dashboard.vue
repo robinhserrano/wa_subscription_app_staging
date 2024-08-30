@@ -6,6 +6,7 @@ import { ref, watch } from "vue";
 
 let props = defineProps({
   filterSubs: Object,
+  paginator: Object
 });
 
 </script>

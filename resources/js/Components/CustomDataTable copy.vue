@@ -2,9 +2,12 @@
     <ThemeSwitcher />
     <div class="card">
         <!-- {{ filterSubs }} -->
-        <DataTable v-model:filters="filters" :value="filterSubs" paginator :rows="50"
-            :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem" showGridlines dataKey="id"
-            filterDisplay="menu" :globalFilterFields="['customer_name', 'country.name', 'representative.name', 'balance', 'status']">>
+        haha
+        {{ filters }}
+        <DataTable v-model:filters="filters" :value="filterSubs.data" lazy :paginator="paginator" :loading="loading"
+            :rows="50" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem" showGridlines dataKey="id"
+            filterDisplay="menu"
+            :globalFilterFields="['customer_name', 'country.name', 'representative.name', 'balance', 'status']">>
             <template #header>
                 <div class="flex justify-between">
                     <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -24,24 +27,28 @@
                 <!-- <template #body="{ data }">
                     {{ data.name }}
                 </template> -->
-                <template #filter="{ filterModel }">
+                <!-- <template #filter="{ filterModel }">
                     <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
-                </template>
+                </template> -->
             </Column>
-            <Column field="invoice_date" header="Invoice Date" filterField="invoice_date" dataType="date"
+            <Column field="invoice_date" header="Invoice Date" <!-- filterField="invoice_date" dataType="date" -->
                 style="min-width: 10rem">
-                <template #filter="{ filterModel }">
+                <!-- <template #filter="{ filterModel }">
                     <DatePicker v-model="filterModel.value" dateFormat="yy/mm/dd" placeholder="yyyy/mm/dd" />
-                </template>
+                </template> -->
             </Column>
             <Column field="payment_status" header="Payment Status" style="min-width: 10rem"></Column>
             <Column field="state_id" header="State" style="min-width: 10rem"></Column>
             <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem"></Column>
             <Column field="phone" header="Phone" style="min-width: 10rem"></Column>
             <Column field="email" header="Email" style="min-width: 10rem"></Column>
-            <Column field="due_date" header="Due Date" style="min-width: 10rem"></Column>
+            <Column field="due_date" header="Due Date" style="min-width: 10rem" filterField="due_date" dataType="date">
+                <template #filter="{ filterModel }">
+                    <DatePicker v-model="filterModel.value" dateFormat="yy/mm/dd" placeholder="yyyy/mm/dd" />
+                </template>
+            </Column>
         </DataTable>
-        <nes-vue url="https://taiyuuki.github.io/nes-vue/Super Mario Bros (JU).nes" />
+        <!-- <nes-vue url="https://taiyuuki.github.io/nes-vue/Super Mario Bros (JU).nes" /> -->
         <!-- <DataTable v-model:filters="filters" :value="filterSubs" paginator showGridlines :rows="10" dataKey="id"
             filterDisplay="menu" :loading="loading"
             :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']"
@@ -206,6 +213,7 @@ const products = ref();
 const selectedProduct = ref();
 // const filterSubs = ref();
 const filters = ref();
+const paginator = ref();
 const representatives = ref([
     { name: 'Amy Elsner', image: 'amyelsner.png' },
     { name: 'Anna Fali', image: 'annafali.png' },
@@ -224,6 +232,7 @@ const loading = ref(true);
 onMounted(() => {
     // filterSubs.value = filterSubs
     loading.value = false;
+
     // CustomerService.getCustomersLarge().then((data) => {
     //     filterSubs.value = getCustomers(data);
     //     loading.value = false;
@@ -232,16 +241,18 @@ onMounted(() => {
 
 
 const initFilters = () => {
+
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        customer_name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+        // customer_name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
         // 'country.name': { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
         // representative: { value: null, matchMode: FilterMatchMode.IN },
-        invoice_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
+        // invoice_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
         // balance: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
         // status: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
         // activity: { value: [0, 100], matchMode: FilterMatchMode.BETWEEN },
         // verified: { value: null, matchMode: FilterMatchMode.EQUALS }
+        due_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
     };
 };
 
