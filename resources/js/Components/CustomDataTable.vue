@@ -3,9 +3,10 @@
     <div class="card">
         {{ filters }}
         {{ totalRecord }}
+        Selected Items: {{ selectedItems }}
         <!-- <Paginator :rows="10" :totalRecords="120" :rowsPerPageOptions="[10, 20, 30]"></Paginator> -->
-        <DataTable v-model:filters="filters" :value="filterSubs.data" lazy :loading="loading"
-            tableStyle="min-width: 50rem" showGridlines dataKey="id" filterDisplay="menu"
+        <DataTable v-model:selection="selectedItems" v-model:filters="filters" :value="filterSubs.data" lazy
+            :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id" filterDisplay="menu"
             :globalFilterFields="['customer_name', 'country.name', 'representative.name', 'balance', 'status']"
             :paginator="true" :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
             @page="handlePageChange">
@@ -23,6 +24,7 @@
             </template>
             <template #empty> No filterSubs found. </template>
             <template #loading> Loading filterSubs data. Please wait. </template>
+            <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
             <Column field="invoice_number" header="Invoice Number" style="min-width: 10rem"></Column>
             <Column field="sales_order_no" header="Sales Order No." style="min-width: 10rem"></Column>
             <Column field="customer_name" header="Customer Name" style="min-width: 10rem" filterField="customer_name">
@@ -73,14 +75,14 @@ let props = defineProps({
 });
 
 const products = ref();
-const selectedProduct = ref();
+const selectedItems = ref();
 // const filterSubs = ref();
 const filters = ref();
 // const paginator = ref();
 const statuses = ref(['unqualified', 'qualified', 'new', 'negotiation', 'renewal', 'proposal']);
 const loading = ref(true);
 const currentPage = ref(0);
-const totalRecord = ref(100);
+const totalRecord = ref(0);
 const search = ref();
 
 onMounted(() => {
@@ -139,11 +141,11 @@ const fetchData = async (event) => {
     // loading.value = true
     var page = (parseInt(event.page + 1, 10) || 1)
     // var search = event.target.value
-  
+
     try {
         const response = await router.get('/dashboard', {
             page: page,
-            search:search.value, 
+            search: search.value,
             // filters: filters.value,
             // Add other parameters if needed
         }, {
@@ -153,9 +155,12 @@ const fetchData = async (event) => {
             onSuccess: (page) => {
                 console.log(page)
                 // filterSubs.value.data = page.props.filterSubs.data
-                // totalRecords.value = page.props.totalRecords // Make sure to handle total records if paginated
+                console.log(page.props.filterSubs.total)
+                totalRecord.value = page.props.filterSubs.total
+                // Make sure to handle total records if paginated
             },
         })
+
     } catch (error) {
         console.error('Error fetching data:', error)
     } finally {

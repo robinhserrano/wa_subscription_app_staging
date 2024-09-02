@@ -34,16 +34,59 @@ Route::middleware([
     Route::get('/dashboard', function () {
         $currentPage = (int) Request::input('page', 1);
         $perPage = (int) Request::input('perPage', 100);
+        $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
+        $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
+
+        $data = FilterSubs::query()
+            ->when(Request::input('search'), function ($query, $search) {
+                $query->where('customer_name', 'like', "%{$search}%");
+            })->orderBy($sortBy, $sortOrder);
+
+        return Inertia::render('Dashboard', [
+            'filterSubs' => $data->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
+        ]);
+    })->name('dashboard');
+});
+
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+])->group(function () {
+    Route::get('/confirmDeliveryRequirement', function () {
+        $currentPage = (int) Request::input('page', 1);
+        $perPage = (int) Request::input('perPage', 100);
+
+        $data = FilterSubs::query()
+            ->when(Request::input('search'), function ($query, $search) {
+                $query->where('customer_name', 'like', "%{$search}%");
+                // $query->where('customer_name', 'like', "%{$search}%");
+            })->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
+
+        return Inertia::render('ConfirmDeliveryRequirement', [
+            'filterSubs' => $data,
+        ]);
+    })->name('confirmDeliveryRequirement');
+});
+
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+])->group(function () {
+    Route::get('/subscriptionsToDeliver', function () {
+        $currentPage = (int) Request::input('page', 1);
+        $perPage = (int) Request::input('perPage', 100);
 
         $data = FilterSubs::query()
             ->when(Request::input('search'), function ($query, $search) {
                 $query->where('customer_name', 'like', "%{$search}%");
             })->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
 
-        return Inertia::render('Dashboard', [
+        return Inertia::render('SubscriptionsToDeliver', [
             'filterSubs' => $data,
         ]);
-    })->name('dashboard');
+    })->name('subscriptionsToDeliver');
 });
 
 // Route::get('/dashboard', function () {

@@ -99,16 +99,23 @@ class FilterSubsController extends Controller
 
         $filterSubsList = $request->all();
         $newFilterSubs = [];
+        $updatedFilterSubs = 0;
 
         foreach ($filterSubsList as $orderData) {
             $filteredFilterSubs = Arr::only($orderData, $allowedFilterSubs);
 
             // Check if sales order already exists by name (unique identifier)
-            $existingFilterSubs = FilterSubs::where('invoice_number', $filteredFilterSubs['invoice_number'])->first();
+            if (!empty($filteredFilterSubs['invoice_number'])) {
+                $existingFilterSubs = FilterSubs::where('invoice_number', $filteredFilterSubs['invoice_number'])->first();
+            } else {
+                $existingFilterSubs = FilterSubs::where('sales_order_no', $filteredFilterSubs['sales_order_no'])->first();
+            }
+
 
             if ($existingFilterSubs) {
                 // Update existing sales order
                 $existingFilterSubs->update($filteredFilterSubs);
+                $updatedFilterSubs++;
                 // $filterSubsId = $existingFilterSubs->id;
             } else {
                 // Prepare new sales order for insertion
@@ -123,6 +130,11 @@ class FilterSubsController extends Controller
             $insertedFilterSubs = FilterSubs::insert($newFilterSubs);
         }
 
-        return response()->json(['message' => 'Sales orders created or updated successfully'], 201); // Created
+        $createdCount = count($newFilterSubs);
+
+
+        return response()->json([
+            'message' => "Sales orders created or updated successfully. Created: $createdCount, Updated: $updatedFilterSubs"
+        ], 201); // Created
     }
 }
