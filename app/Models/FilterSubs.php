@@ -10,4 +10,9 @@ class FilterSubs extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function orderLine()
+    {
+        return $this->hasMany(OrderLine::class, 'sales_order_no', 'sales_order_no');
+    }
 }

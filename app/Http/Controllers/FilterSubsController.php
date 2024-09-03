@@ -14,7 +14,7 @@ class FilterSubsController extends Controller
      */
     public function index()
     {
-        $filterSub = FilterSubs::all();
+        $filterSub = FilterSubs::with('orderLine')->get();
         return $filterSub;
     }
 
