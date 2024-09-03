@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\FilterSubsController;
+use App\Http\Controllers\OrderLineController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
@@ -38,3 +39,5 @@ Route::middleware('auth:sanctum')->resource('/filterSubs', FilterSubsController:
 ])->middleware('auth:sanctum');
 
 Route::post('/bulkStoreFilterSubs', [FilterSubsController::class, 'bulkStoreFilterSubs']);
+
+Route::post('/bulkStoreOrderLine', [OrderLineController::class, 'bulkStoreOrderLine']);

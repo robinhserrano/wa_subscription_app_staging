@@ -4,6 +4,13 @@
         {{ filters }}
         {{ totalRecord }}
         Selected Items: {{ selectedItems }}
+        aaaaaaaaaaa {{ visible }}
+        <Drawer v-model:visible="visible" header="Drawer" class="!w-full md:!w-80 lg:!w-[30rem]">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+                dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+                ex ea commodo consequat.</p>
+        </Drawer>
+        <Button icon="pi pi-arrow-right" @click="visible = true" />
         <!-- <Paginator :rows="10" :totalRecords="120" :rowsPerPageOptions="[10, 20, 30]"></Paginator> -->
         <DataTable v-model:selection="selectedItems" v-model:filters="filters" :value="filterSubs.data" lazy
             :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id" filterDisplay="menu"
@@ -25,22 +32,30 @@
             <template #empty> No filterSubs found. </template>
             <template #loading> Loading filterSubs data. Please wait. </template>
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-            <Column field="invoice_number" header="Invoice Number" style="min-width: 10rem"></Column>
-            <Column field="sales_order_no" header="Sales Order No." style="min-width: 10rem"></Column>
+            <Column field="sales_order_no" header="Sales Order No." style="min-width: 10rem">
+                <template #body="{ data }">
+                    <span 
+                    @click="visible = true" class="cursor-pointer hover:underline">{{
+                        data.sales_order_no }}</span>
+                </template>
+            </Column>
+            <Column field="" header="~ Created on Odoo" style="min-width: 10rem"></Column>
             <Column field="customer_name" header="Customer Name" style="min-width: 10rem" filterField="customer_name">
             </Column>
-            <Column field="invoice_date" header="Invoice Date" style="min-width: 10rem">
-            </Column>
-            <Column field="payment_status" header="Payment Status" style="min-width: 10rem"></Column>
-            <Column field="state_id" header="State" style="min-width: 10rem"></Column>
+            <Column field="address" header="Address" style="min-width: 10rem"></Column>
             <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem"></Column>
-            <Column field="phone" header="Phone" style="min-width: 10rem"></Column>
-            <Column field="email" header="Email" style="min-width: 10rem"></Column>
             <Column field="due_date" header="Due Date" style="min-width: 10rem" filterField="due_date" dataType="date">
                 <template #filter="{ filterModel }">
                     <DatePicker v-model="filterModel.value" dateFormat="yy/mm/dd" placeholder="yyyy/mm/dd" />
                 </template>
             </Column>
+            <Column field="invoice_number" header="Invoice Number" style="min-width: 10rem"></Column>
+            <Column field="invoice_date" header="Invoice Date" style="min-width: 10rem">
+            </Column>
+            <Column field="state_id" header="State" style="min-width: 10rem"></Column>
+            <Column field="phone" header="Phone" style="min-width: 10rem"></Column>
+            <Column field="email" header="Email" style="min-width: 10rem"></Column>
+            <Column field="payment_status" header="Payment Status" style="min-width: 10rem"></Column>
         </DataTable>
 
         <nes-vue url="https://taiyuuki.github.io/nes-vue/Super Mario Bros (JU).nes" />
@@ -69,6 +84,7 @@ import { NesVue } from 'nes-vue';
 import { router } from '@inertiajs/vue3';
 import Paginator from 'primevue/paginator';
 import debounce from 'lodash/debounce';
+import Drawer from 'primevue/drawer';
 
 let props = defineProps({
     filterSubs: Object,
@@ -84,6 +100,7 @@ const loading = ref(true);
 const currentPage = ref(0);
 const totalRecord = ref(0);
 const search = ref();
+const visible = ref(false);
 
 onMounted(() => {
     // filterSubs.value = filterSubs
@@ -146,6 +163,7 @@ const fetchData = async (event) => {
         const response = await router.get('/dashboard', {
             page: page,
             search: search.value,
+            filters: filters.value
             // filters: filters.value,
             // Add other parameters if needed
         }, {
@@ -182,6 +200,13 @@ const formatCurrency = (value) => {
 const clearFilter = () => {
     initFilters();
 };
+
+const handleCellClick = (event, data) => {
+    // Handle the click event here
+    console.log('Clicked sales order:', data.sales_order_no);
+    // Perform any desired actions, such as navigation or data manipulation
+}
+
 const getCustomers = (data) => {
     return [...(data || [])].map((d) => {
         d.date = new Date(d.date);
@@ -207,4 +232,6 @@ const getSeverity = (status) => {
             return null;
     }
 };
+
+
 </script>

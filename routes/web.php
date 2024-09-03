@@ -37,13 +37,78 @@ Route::middleware([
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
 
-        $data = FilterSubs::query()
-            ->when(Request::input('search'), function ($query, $search) {
-                $query->where('customer_name', 'like', "%{$search}%");
-            })->orderBy($sortBy, $sortOrder);
+        $query = FilterSubs::query();
+
+        if ($search = Request::input('search')) {
+            $query->where('customer_name', 'like', "%{$search}%");
+        }
+
+        // Retrieve the filter data from the request
+        $filter = Request::input('filter'); // Assume the JSON is sent under the key 'filter'
+
+        // Extract the due_date constraints from the filter
+        $dueDateConstraints = $filter['due_date']['constraints'] ?? [];
+
+        // Loop through the constraints to determine date constraints
+        foreach ($dueDateConstraints as $constraint) {
+            $value = $constraint['value'] ?? null;
+            $matchMode = $constraint['matchMode'] ?? '';
+
+            switch ($matchMode) {
+                case 'dateBefore':
+                    if ($value) {
+                        $query->where('due_date', '<', $value);
+                    }
+                    break;
+
+                case 'dateAfter':
+                    if ($value) {
+                        $query->where('due_date', '>', $value);
+                    }
+                    break;
+
+                case 'dateIs':
+                    if ($value) {
+                        $query->whereDate('due_date', '=', $value);
+                    }
+                    break;
+
+                case 'dateIsNot':
+                    if ($value) {
+                        $query->whereDate('due_date', '<>', $value);
+                    }
+                    break;
+
+                default:
+                    // Handle any unexpected match modes or constraints
+                    break;
+            }
+        }
+
+        // Apply sorting
+        $query->orderBy($sortBy, $sortOrder);
+
+
+        // $data = FilterSubs::query()
+        //     ->when(Request::input('search'), function ($query, $search) {
+        //         $query->where('customer_name', 'like', "%{$search}%");
+        //     })
+        //     // ->when(Request::input('dateIs'), function ($query, $dateIs) {
+        //     //     $query->whereDate('due_date', '=', $dateIs);
+        //     // })
+        //     // ->when(Request::input('dateIsNot'), function ($query, $dateIsNot) {
+        //     //     $query->whereDate('due_date', '!=', $dateIsNot);
+        //     // })
+        //     // ->when(Request::input('dateIsBefore'), function ($query, $dateIsBefore) {
+        //     //     $query->whereDate('due_date', '<', $dateIsBefore);
+        //     // })
+        //     // ->when(Request::input('dateIsAfter'), function ($query, $dateIsAfter) {
+        //     //     $query->whereDate('due_date', '>', $dateIsAfter);
+        //     // })
+        //     ->orderBy($sortBy, $sortOrder);
 
         return Inertia::render('Dashboard', [
-            'filterSubs' => $data->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
+            'filterSubs' => $query->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
         ]);
     })->name('dashboard');
 });
