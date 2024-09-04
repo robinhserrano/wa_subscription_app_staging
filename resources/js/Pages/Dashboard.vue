@@ -6,7 +6,8 @@ import { ref, watch } from "vue";
 
 let props = defineProps({
   filterSubs: Object,
-  paginator: Object
+  paginator: Object,
+  salesQuotations: Object
 });
 
 </script>
@@ -22,13 +23,13 @@ let props = defineProps({
         <!-- {{ filterSubs }} -->
         </div>
 
-        <div class="py-12 px-12">
+        <!-- <div class="py-12 px-12"> -->
             <!-- <div class="max-w-7xl mx-auto sm:px-6 lg:px-8"> -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
                     <CustomDataTable :filterSubs="filterSubs"/>
                 </div>
             <!-- </div> -->
-        </div>
+        <!-- </div> -->
     </AppLayout>
 </template>
 

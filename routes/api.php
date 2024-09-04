@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\FilterSubsController;
 use App\Http\Controllers\OrderLineController;
+use App\Http\Controllers\SalesOrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
@@ -41,3 +42,7 @@ Route::middleware('auth:sanctum')->resource('/filterSubs', FilterSubsController:
 Route::post('/bulkStoreFilterSubs', [FilterSubsController::class, 'bulkStoreFilterSubs']);
 
 Route::post('/bulkStoreOrderLine', [OrderLineController::class, 'bulkStoreOrderLine']);
+
+Route::post('/bulkStoreSalesOrder', [SalesOrderController::class, 'bulkStoreSalesOrder']);
+
+Route::get('/findSalesOrdersBySalesOrderNo', [SalesOrderController::class, 'findSalesOrdersBySalesOrderNo']);

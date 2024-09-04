@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\FilterSubs;
+use App\Models\SalesOrder;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -32,6 +33,8 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', function () {
+        $salesQuotations = SalesOrder::all();
+
         $currentPage = (int) Request::input('page', 1);
         $perPage = (int) Request::input('perPage', 100);
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
@@ -108,7 +111,8 @@ Route::middleware([
         //     ->orderBy($sortBy, $sortOrder);
 
         return Inertia::render('Dashboard', [
-            'filterSubs' => $query->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
+            'filterSubs' => $query->with('orderLine')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
+            'salesQuotations' => $salesQuotations,
         ]);
     })->name('dashboard');
 });

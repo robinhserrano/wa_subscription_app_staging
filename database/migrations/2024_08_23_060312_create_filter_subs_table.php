@@ -25,6 +25,9 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->timestamp('due_date')->nullable();
+            $table->string('created_on_odoo')->nullable();
+            $table->integer('last_updated_by')->nullable();
+            // $table->integer('last_confirmed_by')->nullable();
         });
     }
     /**
