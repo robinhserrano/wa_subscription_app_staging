@@ -1,6 +1,7 @@
 <template>
 
     <div class="card">
+        <Toast />
 
         <!-- {{ countries }}
         ----------------------------------------------------------------------------------------
@@ -25,7 +26,8 @@
             </DataTable>
 
         </Drawer>
-
+        <button @click="downloadCSV">Download CSV</button>
+        <!-- {{ selectedItems }} -->
         <!-- <Paginator :rows="10" :totalRecords="120" :rowsPerPageOptions="[10, 20, 30]"></Paginator> -->
         <DataTable v-model:selection="selectedItems" v-model:filters="filters" :value="filterSubs.data" lazy
             :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id" filterDisplay="menu"
@@ -55,11 +57,15 @@
             </Column>
             <Column field="" header="Created on Odoo" style="min-width: 10rem">
                 <template #body="{ data }">
-                    <Select v-model="selectedCountry" :options="dropdownOptions" filter optionLabel="name"
-                        placeholder="Select Sales Order #" class="w-full md:w-14rem" @click="handleSelectClick(data)">
+                    <Select v-model="data.created_on_odoo" :options="dropdownOptions" filter optionLabel="name"
+                        placeholder="Select Sales Order #" class="w-full md:w-14rem" @click="handleSelectClick(data)"
+                        @change="handleSelectChange(data)">
                         <template #value="slotProps">
                             <div v-if="slotProps.value" class="flex align-items-center">
-                                <div>{{ slotProps.value.name }}</div>
+
+                                <div v-if="data.created_on_odoo && data.created_on_odoo.value !== null">
+                                    {{ data.created_on_odoo?.name || data.created_on_odoo }} </div>
+                                <div v-else>{{ slotProps.placeholder }}</div>
                             </div>
                             <span v-else>
                                 {{ slotProps.placeholder }}
@@ -68,10 +74,10 @@
                         </template>
                         <template #option="slotProps">
                             <div class="flex align-items-center">
-                                <img :alt="slotProps.option.label"
+                                <!-- <img :alt="slotProps.option.label"
                                     src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png"
-                                    :class="`mr-2 flag flag-${slotProps.option.code.toLowerCase()}`"
-                                    style="width: 18px" />
+                                    :class="`mr-2 flag flag-${slotProps.option.value.toLowerCase()}`"
+                                    style="width: 18px" /> -->
                                 <div>{{ slotProps.option.name }}</div>
                             </div>
                         </template>
@@ -131,6 +137,9 @@ import Paginator from 'primevue/paginator';
 import debounce from 'lodash/debounce';
 import Drawer from 'primevue/drawer';
 import axios from 'axios';
+import { nextTick } from 'vue';
+import { useToast } from 'primevue/usetoast'
+import * as XLSX from 'xlsx';
 
 let props = defineProps({
     filterSubs: Object,
@@ -155,22 +164,11 @@ const selectedCustomerName = ref();
 const selectedCustomerAddress = ref();
 
 const selectedCountry = ref();
-const countries = ref([
 
-    { name: 'Australia', code: 'AU' },
-    { name: 'Brazil', code: 'BR' },
-    { name: 'China', code: 'CN' },
-    { name: 'Egypt', code: 'EG' },
-    { name: 'France', code: 'FR' },
-    { name: 'Germany', code: 'DE' },
-    { name: 'India', code: 'IN' },
-    { name: 'Japan', code: 'JP' },
-    { name: 'Spain', code: 'ES' },
-    { name: 'United States', code: 'US' }
-]);
 
 const salesQuotations = ref();
 const dropdownOptions = ref([]);
+const toast = useToast()
 
 onMounted(() => {
     // filterSubs.value = filterSubs
@@ -298,6 +296,27 @@ const handleSelectClick = (salesOrder) => {
     // Your custom logic here
 }
 
+const handleSelectChange = async (salesOrder) => {
+    try {
+        const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
+            created_on_odoo: salesOrder.created_on_odoo.value,
+        });
+        console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZ')
+        console.log(response)
+        console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+
+
+        console.log('handle select change')
+        toast.add({ severity: 'success', summary: 'Success', detail: 'Message Content', life: 3000 })
+    } catch (error) {
+        // Handle error
+        console.error('Failed to update created_on_odoo:', error);
+        toast.add({ severity: 'success', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
+        // this.$toast.add({ severity: 'error', summary: 'Update Failed', detail: 'Failed to update Created on Odoo.' });
+    }
+}
+
+
 
 
 const getCustomers = (data) => {
@@ -330,7 +349,7 @@ const getSeverity = (status) => {
 watch(selectedSalesOrderId, async (newSalesOrderId) => {
     if (newSalesOrderId) {
         try {
-            dropdownOptions.value = []
+            // dropdownOptions.value = []
             const response = await axios.get('/api/findSalesOrdersBySalesOrderNo', {
                 params: {
                     'sales_order_no': newSalesOrderId
@@ -341,15 +360,103 @@ watch(selectedSalesOrderId, async (newSalesOrderId) => {
             console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
             dropdownOptions.value = response.data.map(item => ({
                 name: item.sales_order_no,
-                code: item.sales_order_no,
+                value: item.sales_order_no,
 
             })
 
+
             );
+            dropdownOptions.value.push({ name: '- Unselect -', value: null });
         } catch (error) {
             console.error('Error fetching dropdown options:', error);
         }
     }
 });
+
+// const downloadCSV = ()=> {
+//     //   const jsonData = [
+//     //     {
+//     //       id: 1539,
+//     //       created_at: "2024-09-04T06:13:38.000000Z",
+//     //       updated_at: "2024-09-04T06:15:46.000000Z",
+//     //       invoice_number: "INV/2023/00133",
+//     //       sales_order_no: "S00197",
+//     //       customer_name: "Mark Philip Barnard",
+//     //       invoice_date: "2023-08-31 00:00:00",
+//     //       payment_status: "paid",
+//     //       address: "Unit 1\n16 Crestview Cres.\nKalamunda WA 6076\nAustralia",
+//     //       state_id: "8",
+//     //       activity_summary: "3 + 3 Stage Filter Expires",
+//     //       phone: "+61 407 616 694",
+//     //       email: "markphilipbarnard@gmail.com",
+//     //       due_date: "2025-09-16 00:00:00",
+//     //       created_on_odoo: null,
+//     //       last_updated_by: null,
+//     //     },
+//     //     // Add more data if needed
+//     //   ];
+
+//       // Convert JSON data to a worksheet
+//       const ws = XLSX.utils.json_to_sheet(selectedItems.value);
+
+//       // Create a new workbook and append the worksheet
+//       const wb = XLSX.utils.book_new();
+//       XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+//       // Generate CSV file and initiate download
+//       const csvOutput = XLSX.utils.sheet_to_csv(ws);
+//       const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+//       const url = URL.createObjectURL(blob);
+
+//       const link = document.createElement('a');
+//       link.href = url;
+//       link.setAttribute('download', 'data.csv');
+//       document.body.appendChild(link);
+//       link.click();
+//       document.body.removeChild(link);
+//     };
+
+
+const downloadCSV = () => {
+    // Define custom headers and corresponding columns
+    const headers = {
+        'Invoice Number': 'invoice_number',
+        'Customer Name': 'customer_name',
+        'Invoice Date': 'invoice_date',
+        'Payment Status': 'payment_status',
+        'Phone': 'phone',
+        'Email': 'email'
+    };
+
+    // Map JSON data to include only selected columns with custom headers
+    const mappedData = selectedItems.value.map(item => {
+        let newItem = {};
+        for (const [header, key] of Object.entries(headers)) {
+            newItem[header] = item[key];
+        }
+        return newItem;
+    });
+
+    // Convert the mapped data to a worksheet
+    const ws = XLSX.utils.json_to_sheet(mappedData);
+
+    // Create a new workbook and append the worksheet
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+    // Generate CSV file and initiate download
+    const csvOutput = XLSX.utils.sheet_to_csv(ws);
+    const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'data.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+
 
 </script>

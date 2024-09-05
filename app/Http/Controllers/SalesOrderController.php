@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SalesOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Exception;
 
 class SalesOrderController extends Controller
 {

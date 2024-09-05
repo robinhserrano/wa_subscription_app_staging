@@ -56,7 +56,7 @@ const logout = () => {
                                 <NavLink :href="route('confirmDeliveryRequirement')" :active="route().current('confirmDeliveryRequirement')">
                                     Confirm Delivery Requirement
                                 </NavLink>
-                                <NavLink :href="route('dashboard')" :active="route().current('dashboard3')">
+                                <NavLink :href="route('subscriptionsToDeliver')" :active="route().current('subscriptionsToDeliver')">
                                     Subscriptions to Deliver
                                 </NavLink>
                             </div>

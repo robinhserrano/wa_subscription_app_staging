@@ -46,3 +46,6 @@ Route::post('/bulkStoreOrderLine', [OrderLineController::class, 'bulkStoreOrderL
 Route::post('/bulkStoreSalesOrder', [SalesOrderController::class, 'bulkStoreSalesOrder']);
 
 Route::get('/findSalesOrdersBySalesOrderNo', [SalesOrderController::class, 'findSalesOrdersBySalesOrderNo']);
+
+Route::match(['put', 'patch'],'/updateCreatedOnOdooInFilterSubs/{id}', [FilterSubsController::class, 'updateCreatedOnOdooInFilterSubs']);
+

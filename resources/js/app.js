@@ -7,6 +7,8 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import PrimeVue from 'primevue/config';
 import Noir from './presets/Noir';
+import ToastService from 'primevue/toastservice';
+import Toast from 'primevue/toast';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -28,6 +30,8 @@ createInertiaApp({
 						}
 					}
 				})
+				.use(ToastService)
+				.component('Toast', Toast)
 				// .component('DataTable', DataTable)  // Register DataTable globally
 				// .component('Column', Column)
 				.mount(el)

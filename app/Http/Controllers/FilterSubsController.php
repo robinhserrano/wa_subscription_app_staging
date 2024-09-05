@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\FilterSubs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+
 use Exception;
 
 class FilterSubsController extends Controller
@@ -136,5 +137,27 @@ class FilterSubsController extends Controller
         return response()->json([
             'message' => "Sales orders created or updated successfully. Created: $createdCount, Updated: $updatedFilterSubs"
         ], 201); // Created
+    }
+
+    public function updateCreatedOnOdooInFilterSubs(Request $request, string $id)
+    {
+        try {
+            $filterSub = FilterSubs::findOrFail($id);
+
+            // return $filterSub;
+            $createdOnOdoo = $request->input('created_on_odoo');
+
+            // return $request;
+
+            // // return  $createdOnOdoo ;
+            // // return 'ahah';
+
+            $filterSub->created_on_odoo = $createdOnOdoo;
+            $filterSub->save();
+
+            return response()->json(['filterSub' => $filterSub, 'message' => 'CreatedOnOdoo updated successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to update CreatedOnOdoo in Sales Order:'], 404);
+        }
     }
 }
