@@ -26,7 +26,29 @@
             </DataTable>
 
         </Drawer>
+        <Drawer v-model:visible="visibleRight" header="Filters" position="right" 
+        
+         class="!w-full md:!w-80 lg:!w-[30rem]">
+            <!-- <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+                dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+                ex ea commodo consequat.</p> -->
+            <p>
+                {{ selectedCustomerName }}
+            </p>
+            <p>
+                {{ selectedCustomerAddress }}
+            </p>
+            <DataTable :value="selectedSalesOrderLines" dataKey="id" showGridlines class="mt-4">
+
+                <Column field="product" header="Product" style="min-width: 10rem"></Column>
+                <Column field="description" header="Description" style="min-width: 10rem"></Column>
+                <Column field="quantity" header="Quantity" style="min-width: 5rem"></Column>
+
+            </DataTable>
+
+        </Drawer>
         <button @click="downloadCSV">Download CSV</button>
+        <Button icon="pi pi-arrow-up" @click="visibleRight = true" />
         <!-- {{ selectedItems }} -->
         <!-- <Paginator :rows="10" :totalRecords="120" :rowsPerPageOptions="[10, 20, 30]"></Paginator> -->
         <DataTable v-model:selection="selectedItems" v-model:filters="filters" :value="filterSubs.data" lazy
@@ -157,6 +179,7 @@ const currentPage = ref(0);
 const totalRecord = ref(0);
 const search = ref();
 const visible = ref(false);
+const visibleRight = ref(false);
 
 const selectedSalesOrderId = ref();
 const selectedSalesOrderLines = ref();
@@ -420,12 +443,25 @@ watch(selectedSalesOrderId, async (newSalesOrderId) => {
 const downloadCSV = () => {
     // Define custom headers and corresponding columns
     const headers = {
-        'Invoice Number': 'invoice_number',
-        'Customer Name': 'customer_name',
-        'Invoice Date': 'invoice_date',
-        'Payment Status': 'payment_status',
-        'Phone': 'phone',
-        'Email': 'email'
+        //Record Type: C (Default) //A
+        //Receiver Code: //B
+        'Receiver Name': 'customer_name', //C
+       //Receiver Address 1 //D
+       //Receiver Address 2 //E
+       //Receiver Address 3 //F
+       //Receiver Suburb //G
+       //Receiver Postcode //H
+        'Receiver Contact': 'customer_name',//I
+        'Receiver Phone': 'phone', //J
+        'Email': 'email', //K
+        'Reference 1': 'invoice_number', //L
+        'Reference 2': 'invoice_date', //M
+        'Payment Status': 'payment_status', //N
+        //O
+        //P
+        //Q
+        //R
+        //'Authority to Leave': Y (Default) //S
     };
 
     // Map JSON data to include only selected columns with custom headers

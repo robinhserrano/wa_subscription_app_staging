@@ -157,7 +157,8 @@ class FilterSubsController extends Controller
 
             return response()->json(['filterSub' => $filterSub, 'message' => 'CreatedOnOdoo updated successfully'], 200);
         } catch (Exception $e) {
-            return response()->json(['error' => 'Failed to update CreatedOnOdoo in Sales Order:'], 404);
+            return response()->json(['error' => 'Failed to update CreatedOnOdoo in FilterSub: ' . $e->getMessage()], 500);
+            // return response()->json(['error' => 'Failed to update CreatedOnOdoo in Sales Order:'], 404);
         }
     }
 }
