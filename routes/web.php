@@ -2,6 +2,7 @@
 
 use App\Models\FilterSubs;
 use App\Models\SalesOrder;
+use App\Models\StateId;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -41,6 +42,11 @@ Route::middleware([
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
 
         $query = FilterSubs::query();
+        $stateId = Request::input('stateId', null);
+
+        if ($stateId !== null  && $stateId < 9) {
+            $query->where('state_id', $stateId);
+        }
 
         if ($search = Request::input('search')) {
             $query->where('customer_name', 'like', "%{$search}%")->orWhere('sales_order_no', 'like', "%{$search}%");
@@ -113,7 +119,7 @@ Route::middleware([
 
         return Inertia::render('Dashboard', [
             'filterSubs' => $query->with('orderLine')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
-            'salesQuotations' => $salesQuotations,
+            'stateIds'  => StateId::all()->sortByDesc('state_id')
         ]);
     })->name('dashboard');
     Route::get('/confirmDeliveryRequirement', function () {
@@ -124,7 +130,14 @@ Route::middleware([
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
 
-        $query = FilterSubs::query()->whereNotNull('created_on_odoo');;
+        $query = FilterSubs::query()->whereNotNull('created_on_odoo');
+        $stateId = Request::input('stateId', null);
+
+        if ($stateId !== null  && $stateId < 9) {
+            $query->where('state_id', $stateId);
+        }
+
+
 
         if ($search = Request::input('search')) {
             $query->where('customer_name', 'like', "%{$search}%")->orWhere('sales_order_no', 'like', "%{$search}%");
@@ -139,7 +152,7 @@ Route::middleware([
 
         return Inertia::render('ConfirmDeliveryRequirement', [
             'filterSubs' => $query->with('orderLine')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
-            'salesQuotations' => $salesQuotations,
+            'stateIds'  => StateId::all()
         ]);
     })->name('confirmDeliveryRequirement');
 
@@ -151,7 +164,15 @@ Route::middleware([
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
 
-        $query = FilterSubs::query();
+        $query = FilterSubs::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 1);;
+
+        // $query = FilterSubs::query();
+        $stateId = Request::input('stateId', null);
+
+        if ($stateId !== null  && $stateId < 9) {
+            $query->where('state_id', $stateId);
+        }
+
 
         if ($search = Request::input('search')) {
             $query->where('customer_name', 'like', "%{$search}%")->orWhere('sales_order_no', 'like', "%{$search}%");
@@ -166,7 +187,7 @@ Route::middleware([
 
         return Inertia::render('SubscriptionsToDeliver', [
             'filterSubs' => $query->with('orderLine')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
-            'salesQuotations' => $salesQuotations,
+            'stateIds'  => StateId::all()
         ]);
     })->name('subscriptionsToDeliver');
 });

@@ -143,14 +143,7 @@ class FilterSubsController extends Controller
     {
         try {
             $filterSub = FilterSubs::findOrFail($id);
-
-            // return $filterSub;
             $createdOnOdoo = $request->input('created_on_odoo');
-
-            // return $request;
-
-            // // return  $createdOnOdoo ;
-            // // return 'ahah';
 
             $filterSub->created_on_odoo = $createdOnOdoo;
             $filterSub->save();
@@ -158,6 +151,23 @@ class FilterSubsController extends Controller
             return response()->json(['filterSub' => $filterSub, 'message' => 'CreatedOnOdoo updated successfully'], 200);
         } catch (Exception $e) {
             return response()->json(['error' => 'Failed to update CreatedOnOdoo in FilterSub: ' . $e->getMessage()], 500);
+            // return response()->json(['error' => 'Failed to update CreatedOnOdoo in Sales Order:'], 404);
+        }
+    }
+
+
+    public function updateRequiredDeliveryInFilterSubs(Request $request, string $id)
+    {
+        try {
+            $filterSub = FilterSubs::findOrFail($id);
+            $requiredDelivery = $request->input('required_delivery');
+
+            $filterSub->required_delivery = $requiredDelivery;
+            $filterSub->save();
+
+            return response()->json(['filterSub' => $filterSub, 'message' => 'required_delivery updated successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to update required_delivery in FilterSub: ' . $e->getMessage()], 500);
             // return response()->json(['error' => 'Failed to update CreatedOnOdoo in Sales Order:'], 404);
         }
     }

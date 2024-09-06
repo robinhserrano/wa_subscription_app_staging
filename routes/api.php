@@ -3,6 +3,7 @@
 use App\Http\Controllers\FilterSubsController;
 use App\Http\Controllers\OrderLineController;
 use App\Http\Controllers\SalesOrderController;
+use App\Http\Controllers\StateIdController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
@@ -47,5 +48,8 @@ Route::post('/bulkStoreSalesOrder', [SalesOrderController::class, 'bulkStoreSale
 
 Route::get('/findSalesOrdersBySalesOrderNo', [SalesOrderController::class, 'findSalesOrdersBySalesOrderNo']);
 
-Route::match(['put', 'patch'],'/updateCreatedOnOdooInFilterSubs/{id}', [FilterSubsController::class, 'updateCreatedOnOdooInFilterSubs']);
+Route::match(['put', 'patch'], '/updateCreatedOnOdooInFilterSubs/{id}', [FilterSubsController::class, 'updateCreatedOnOdooInFilterSubs']);
 
+Route::post('/bulkStateIdStore', [StateIdController::class, 'bulkStateIdStore']);
+
+Route::match(['put', 'patch'], '/updateRequiredDeliveryInFilterSubs/{id}', [FilterSubsController::class, 'updateRequiredDeliveryInFilterSubs']);

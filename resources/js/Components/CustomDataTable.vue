@@ -11,6 +11,8 @@
             <!-- <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
                 dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
                 ex ea commodo consequat.</p> -->
+
+
             <p>
                 {{ selectedCustomerName }}
             </p>
@@ -26,36 +28,61 @@
             </DataTable>
 
         </Drawer>
-        <Drawer v-model:visible="visibleRight" header="Filters" position="right" 
-        
-         class="!w-full md:!w-80 lg:!w-[30rem]">
+        <Drawer v-model:visible="visibleRight" header="Filters" position="right" class="!w-full md:!w-80 lg:!w-[30rem]">
             <!-- <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
                 dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
                 ex ea commodo consequat.</p> -->
+            <!-- {{ selectedStateId }} -->
+            <p class="mb-2 text-xl font-bold">States</p>
+            <!-- {{ stateIds }} -->
+            <div v-for="category in stateIds" :key="category.id" class="flex items-center mb-2">
+                <RadioButton v-model="selectedStateId" :inputId="category.id" name="dynamic"
+                    :value="category.state_id" />
+                <label :for="category.id" class="ml-2">{{ category.name }}</label>
+            </div>
+
+            <p class="mt-4 mb-2 text-xl font-bold">_ Category _</p>
+            <!-- {{ stateIds }} -->
+            <div v-for="category in filterTypes" :key="category.id" class="flex items-center mb-2">
+                <RadioButton v-model="selectedType" :inputId="category.id" name="dynamic" :value="category.state_id" />
+                <label :for="category.id" class="ml-2">{{ category.name }}</label>
+            </div>
+
+            <!-- 
+    
+            
+            <p-radioSelect id="stateSelect" name="state" options={stateOptions} optionLabel="name" />
             <p>
                 {{ selectedCustomerName }}
             </p>
             <p>
                 {{ selectedCustomerAddress }}
-            </p>
-            <DataTable :value="selectedSalesOrderLines" dataKey="id" showGridlines class="mt-4">
+            </p> -->
 
-                <Column field="product" header="Product" style="min-width: 10rem"></Column>
-                <Column field="description" header="Description" style="min-width: 10rem"></Column>
-                <Column field="quantity" header="Quantity" style="min-width: 5rem"></Column>
-
-            </DataTable>
 
         </Drawer>
-        <button @click="downloadCSV">Download CSV</button>
-        <Button icon="pi pi-arrow-up" @click="visibleRight = true" />
-        <!-- {{ selectedItems }} -->
-        <!-- <Paginator :rows="10" :totalRecords="120" :rowsPerPageOptions="[10, 20, 30]"></Paginator> -->
-        <DataTable v-model:selection="selectedItems" v-model:filters="filters" :value="filterSubs.data" lazy
-            :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id" filterDisplay="menu"
-            :globalFilterFields="['customer_name', 'country.name', 'representative.name', 'balance', 'status']"
-            :paginator="true" :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
+    
+        <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button>
+ 
+        <Paginator :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
             @page="handlePageChange">
+            <template #start="slotProps">
+                <!-- Page: {{ slotProps.state.page }}
+                First: {{ slotProps.state.first }}
+                Rows: {{ slotProps.state.rows }} -->
+                {{ filterSubs.from }}-{{ filterSubs.to }} / {{ filterSubs.total }}
+            </template>
+            <!-- <template #end>
+                <Button type="button" icon="pi pi-search" />
+            </template> -->
+        </Paginator>
+
+
+        <DataTable v-model:selection="selectedItems" 
+        v-model:filters="filters" 
+        :value="filterSubs.data" lazy
+            :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id" filterDisplay="menu"
+            :globalFilterFields="['customer_name', 'country.name', 'representative.name', 'balance', 'status']">
             <template #header>
                 <div class="flex justify-between">
                     <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -63,11 +90,16 @@
                         <InputIcon>
                             <i class="pi pi-search" />
                         </InputIcon>
-                        <InputText v-model="filters['global'].value" placeholder="Keyword Search"
-                            @input="handleSearch" />
+                        <div>
+                            <Button @click="visibleRight = true" label="Filter" class="mr-4" />
+                            <InputText v-model="filters['global'].value" placeholder="Keyword Search"
+                                @input="handleSearch" />
+                        </div>
+
                     </IconField>
                 </div>
             </template>
+
             <template #empty> No filterSubs found. </template>
             <template #loading> Loading filterSubs data. Please wait. </template>
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
@@ -80,8 +112,8 @@
             <Column field="" header="Created on Odoo" style="min-width: 10rem">
                 <template #body="{ data }">
                     <Select v-model="data.created_on_odoo" :options="dropdownOptions" filter optionLabel="name"
-                        placeholder="Select Sales Order #" class="w-full md:w-14rem" @click="handleSelectClick(data)"
-                        @change="handleSelectChange(data)">
+                        placeholder="Select Sales Order #" class="w-full md:w-14rem"
+                        @click="handleSelectClickOdooCreatedBy(data)" @change="handleSelectChangeOdooCreatedBy(data)">
                         <template #value="slotProps">
                             <div v-if="slotProps.value" class="flex align-items-center">
 
@@ -96,16 +128,44 @@
                         </template>
                         <template #option="slotProps">
                             <div class="flex align-items-center">
-                                <!-- <img :alt="slotProps.option.label"
-                                    src="https://primefaces.org/cdn/primevue/images/flag/flag_placeholder.png"
-                                    :class="`mr-2 flag flag-${slotProps.option.value.toLowerCase()}`"
-                                    style="width: 18px" /> -->
                                 <div>{{ slotProps.option.name }}</div>
                             </div>
                         </template>
                     </Select>
                 </template>
             </Column>
+            <Column v-if="route().current('confirmDeliveryRequirement')" field="" header="Created on Odoo"
+                style="min-width: 10rem">
+                <template #body="{ data }">
+                    <Select v-model="data.required_delivery" :options="dropdownRequireDelivery" filter
+                        optionLabel="name" placeholder="Select Confirmation" class="w-full md:w-14rem"
+                        @change="handleSelectChangeDeliveryConfimation(data)">
+                        <template #value="slotProps">
+                            {{ data.required_delivery }}
+                            <div v-if="slotProps.value" class="flex align-items-center">
+
+                                <div v-if="data.required_delivery != null || data.required_delivery.value !== null">
+                                    {{ data.required_delivery?.name || data.required_delivery }} </div>
+                                <div v-else>{{ slotProps.placeholder }}</div>
+                            </div>
+
+                            <span v-else>
+                                {{ slotProps.placeholder }}
+                            </span>
+
+                        </template>
+                        <template #option="slotProps">
+                            <div class="flex align-items-center">
+                                <div>{{ slotProps.option.name }}</div>
+                            </div>
+                        </template>
+                    </Select>
+                </template>
+            </Column>
+            <!-- <Column v-if="route().current('confirmDeliveryRequirement')" field="customer_name" header="Customer Name"
+                style="min-width: 10rem" filterField="customer_name">
+
+            </Column> -->
             <Column field="customer_name" header="Customer Name" style="min-width: 10rem" filterField="customer_name">
             </Column>
             <Column field="address" header="Address" style="min-width: 10rem"></Column>
@@ -125,13 +185,20 @@
                     {{ formatDate(data.invoice_date) }}
                 </template>
             </Column>
-            <Column field="state_id" header="State" style="min-width: 10rem"></Column>
+            <Column field="state_id" header="State" style="min-width: 10rem">
+
+                <template #body="{ data }">
+                    <!-- {{ formatDate(data.invoice_date) }} -->
+                    {{ stateIds[data.state_id - 1]?.name }}
+                </template>
+
+            </Column>
             <Column field="phone" header="Phone" style="min-width: 10rem"></Column>
             <Column field="email" header="Email" style="min-width: 10rem"></Column>
             <Column field="payment_status" header="Payment Status" style="min-width: 10rem"></Column>
         </DataTable>
 
-        <nes-vue url="https://taiyuuki.github.io/nes-vue/Super Mario Bros (JU).nes" />
+        <!-- <nes-vue url="https://taiyuuki.github.io/nes-vue/Super Mario Bros (JU).nes" /> -->
     </div>
 </template>
 
@@ -161,21 +228,22 @@ import Drawer from 'primevue/drawer';
 import axios from 'axios';
 import { nextTick } from 'vue';
 import { useToast } from 'primevue/usetoast'
+import RadioButton from 'primevue/radiobutton';
 import * as XLSX from 'xlsx';
 
 let props = defineProps({
     filterSubs: Object,
-    salesQuotations: Object
+    stateIds: Object
 });
 
 const products = ref();
-const selectedItems = ref();
+const selectedItems = ref([]);
 // const filterSubs = ref();
 const filters = ref();
 // const paginator = ref();
 const statuses = ref(['unqualified', 'qualified', 'new', 'negotiation', 'renewal', 'proposal']);
 const loading = ref(true);
-const currentPage = ref(0);
+const currentPage = ref(1);
 const totalRecord = ref(0);
 const search = ref();
 const visible = ref(false);
@@ -193,11 +261,27 @@ const salesQuotations = ref();
 const dropdownOptions = ref([]);
 const toast = useToast()
 
+const stateIds = ref([])
+
+const selectedStateId = ref()
+const selectedType = ref()
+const filterTypes = ref([{ "id": 1, "name": "1st Stage Filter Only", }, { "id": 2, "name": "Filter Subscription", }, { "id": 3, "name": "All Types", }]);
+
+
+const dropdownRequireDelivery = ref([
+    { name: 'Confirm', value: true },
+    { name: 'Deny', value: false },
+    { name: '- Unselect -', value: null },
+]);
+// const selected = ref()
+
+
 onMounted(() => {
     // filterSubs.value = filterSubs
     loading.value = false;
     totalRecord.value = props.filterSubs.total
     salesQuotations.value = props.salesQuotations
+    stateIds.value = props.stateIds
     //filterSubs.total;
     // CustomerService.getCustomersLarge().then((data) => {
     //     filterSubs.value = getCustomers(data);
@@ -211,6 +295,8 @@ onMounted(() => {
     // }
 
 });
+
+
 
 
 const initFilters = () => {
@@ -239,39 +325,47 @@ initFilters();
 
 const handlePageChange = (event) => {
     currentPage.value = event.page + 1 // Adjusting because page index is 0-based
-    fetchData(event)
+    console.log('page change')
+    console.log(currentPage.value)
+    fetchData()
 }
 
 const handleSearch = (event) => {
     // console.log(event)
     search.value = event.target.value
     console.log(event.target.value)
-    debounce(fetchData(event), 300);
+    // var page = (parseInt(event.page + 1, 10) || 1)
+    debounce(fetchData(), 300);
 };
 
 
 
-const fetchData = async (event) => {
+const fetchData = async () => {
+
+
     // loading.value = true
-    var page = (parseInt(event.page + 1, 10) || 1)
+    // var page = (parseInt(event.page + 1, 10) || 1)
     // var search = event.target.value
 
     try {
+        console.log('fetch data page')
+        console.log(currentPage.value)
         const response = await router.get('/dashboard', {
-            page: page,
+            page: currentPage.value,
             search: search.value,
-            filters: filters.value
+            filters: filters.value,
+            stateId: selectedStateId.value === 0 ? null : selectedStateId.value,
             // filters: filters.value,
             // Add other parameters if needed
         }, {
             // only: ['dashboard'],
             preserveState: true,
             replace: false,
-            onSuccess: (page) => {
-                console.log(page)
+            onSuccess: (newData) => {
+                console.log(newData)
                 // filterSubs.value.data = page.props.filterSubs.data
-                console.log(page.props.filterSubs.total)
-                totalRecord.value = page.props.filterSubs.total
+                console.log(newData.props.filterSubs.total)
+                totalRecord.value = newData.props.filterSubs.total
                 // Make sure to handle total records if paginated
             },
         })
@@ -313,16 +407,33 @@ const handleCellClick = (salesOrder) => {
     // Perform any desired actions, such as navigation or data manipulation
 }
 
-const handleSelectClick = (salesOrder) => {
+const handleSelectClickOdooCreatedBy = (salesOrder) => {
     selectedSalesOrderId.value = salesOrder.sales_order_no
     console.log('Select clicked', event);
     // Your custom logic here
 }
 
-const handleSelectChange = async (salesOrder) => {
+const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
     try {
         const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
             created_on_odoo: salesOrder.created_on_odoo.value,
+        });
+
+        console.log('handle select change')
+        toast.add({ severity: 'success', summary: 'Success', detail: 'Message Content', life: 3000 })
+    } catch (error) {
+
+        console.error('Failed to update created_on_odoo:', error);
+        toast.add({ severity: 'success', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
+
+    }
+}
+
+
+const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
+    try {
+        const response = await axios.put(`/api/updateRequiredDeliveryInFilterSubs/${salesOrder.id}`, {
+            required_delivery: salesOrder.required_delivery.value,
         });
         console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZ')
         console.log(response)
@@ -338,6 +449,7 @@ const handleSelectChange = async (salesOrder) => {
         // this.$toast.add({ severity: 'error', summary: 'Update Failed', detail: 'Failed to update Created on Odoo.' });
     }
 }
+
 
 
 
@@ -396,6 +508,22 @@ watch(selectedSalesOrderId, async (newSalesOrderId) => {
     }
 });
 
+watch(selectedStateId, async (newStateId) => {
+    console.log('changed state, load fetch data 1')
+    if (newStateId) {
+        console.log('changed state, load fetch data 2')
+        fetchData()
+
+    }
+});
+
+
+// watch(selectedStateId, async (newStateId) => {
+//     if (newStateId) {
+//       fetc
+//     }
+// });
+
 // const downloadCSV = ()=> {
 //     //   const jsonData = [
 //     //     {
@@ -446,11 +574,11 @@ const downloadCSV = () => {
         //Record Type: C (Default) //A
         //Receiver Code: //B
         'Receiver Name': 'customer_name', //C
-       //Receiver Address 1 //D
-       //Receiver Address 2 //E
-       //Receiver Address 3 //F
-       //Receiver Suburb //G
-       //Receiver Postcode //H
+        //Receiver Address 1 //D
+        //Receiver Address 2 //E
+        //Receiver Address 3 //F
+        //Receiver Suburb //G
+        //Receiver Postcode //H
         'Receiver Contact': 'customer_name',//I
         'Receiver Phone': 'phone', //J
         'Email': 'email', //K

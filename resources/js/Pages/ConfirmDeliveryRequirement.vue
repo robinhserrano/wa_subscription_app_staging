@@ -5,8 +5,8 @@ import CustomDataTable from '@/Components/CustomDataTable.vue';
 import { ref, watch } from "vue";
 
 let props = defineProps({
-  filterSubs: Object,
-  paginator: Object
+    filterSubs: Object,
+    stateIds: Object
 });
 
 </script>
@@ -15,18 +15,18 @@ let props = defineProps({
     <AppLayout title="ConfirmDeliveryRequirement">
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                Subscription to Enter
+                Confirm Delivery Requirement
             </h2>
         </template>
         <div>
-        <!-- {{ filterSubs }} -->
+            <!-- {{ filterSubs }} -->
         </div>
 
         <div class="py-12 px-12">
             <!-- <div class="max-w-7xl mx-auto sm:px-6 lg:px-8"> -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
-                    <CustomDataTable :filterSubs="filterSubs"/>
-                </div>
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
+                <CustomDataTable :filterSubs="filterSubs" :stateIds="stateIds" />
+            </div>
             <!-- </div> -->
         </div>
     </AppLayout>
