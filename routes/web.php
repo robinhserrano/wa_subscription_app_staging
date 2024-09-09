@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Request;
+use Carbon\Carbon;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -40,8 +41,36 @@ Route::middleware([
         $perPage = (int) Request::input('perPage', 100);
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
+        $dates = Request::input('dates', []);
 
         $query = FilterSubs::query();
+
+        // if (!empty($dates)) {
+        //     $startDate = Carbon::parse($dates[0]);
+        //     $endDate = isset($dates[1]) ? Carbon::parse($dates[1]) : null;
+
+        //     $query->where('due_date', '>=', $startDate)
+        //         ->when($endDate, function ($query) use ($endDate) {
+        //             return $query->where('due_date', '<=', $endDate);
+        //         })
+        //         ->get();
+        // }
+        if (!empty($dates)) {
+            $startDate = Carbon::parse($dates[0]);
+            $endDate = isset($dates[1]) ? Carbon::parse($dates[1]) : null;
+        
+
+            $query->where('due_date', '>=', $startDate);
+
+            if($endDate){
+                $query->whereBetween('due_date', [$startDate, $endDate])
+                ->get();
+            }
+           
+        }
+
+
+
         $stateId = Request::input('stateId', null);
 
         if ($stateId !== null  && $stateId < 9) {
@@ -164,7 +193,7 @@ Route::middleware([
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
 
-        $query = FilterSubs::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 1);;
+        $query = FilterSubs::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');;
 
         // $query = FilterSubs::query();
         $stateId = Request::input('stateId', null);

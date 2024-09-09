@@ -13,14 +13,12 @@ let props = defineProps({
 
 <template>
     <AppLayout title="SubscriptionsToDeliver">
-        <template #header>
+        <!-- <template #header>
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 Subscription to Enter
             </h2>
         </template>
-        <div>
-            <!-- {{ filterSubs }} -->
-        </div>
+      -->
 
         <!-- <div class="py-12 px-12"> -->
         <!-- <div class="max-w-7xl mx-auto sm:px-6 lg:px-8"> -->

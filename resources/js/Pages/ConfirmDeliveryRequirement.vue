@@ -13,22 +13,20 @@ let props = defineProps({
 
 <template>
     <AppLayout title="ConfirmDeliveryRequirement">
-        <template #header>
+        <!-- <template #header>
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 Confirm Delivery Requirement
             </h2>
-        </template>
-        <div>
-            <!-- {{ filterSubs }} -->
-        </div>
+        </template> -->
+    
 
-        <div class="py-12 px-12">
+        <!-- <div class="py-12 px-12"> -->
             <!-- <div class="max-w-7xl mx-auto sm:px-6 lg:px-8"> -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
                 <CustomDataTable :filterSubs="filterSubs" :stateIds="stateIds" />
             </div>
             <!-- </div> -->
-        </div>
+        <!-- </div> -->
     </AppLayout>
 </template>
 

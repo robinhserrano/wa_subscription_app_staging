@@ -1,6 +1,7 @@
 <template>
 
     <div class="card">
+        {{ dates }}
         <Toast />
 
         <!-- {{ countries }}
@@ -58,12 +59,14 @@
             <p>
                 {{ selectedCustomerAddress }}
             </p> -->
+            <p class="mt-4 mb-2 text-xl font-bold">Date Range</p>
+            <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
 
 
         </Drawer>
-    
+
         <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button>
- 
+
         <Paginator :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
             @page="handlePageChange">
             <template #start="slotProps">
@@ -78,9 +81,7 @@
         </Paginator>
 
 
-        <DataTable v-model:selection="selectedItems" 
-        v-model:filters="filters" 
-        :value="filterSubs.data" lazy
+        <DataTable v-model:selection="selectedItems" v-model:filters="filters" :value="filterSubs.data" lazy
             :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id" filterDisplay="menu"
             :globalFilterFields="['customer_name', 'country.name', 'representative.name', 'balance', 'status']">
             <template #header>
@@ -134,17 +135,25 @@
                     </Select>
                 </template>
             </Column>
-            <Column v-if="route().current('confirmDeliveryRequirement')" field="" header="Created on Odoo"
+            <Column v-if="route().current('confirmDeliveryRequirement')" field="" header="Require Delivery"
                 style="min-width: 10rem">
                 <template #body="{ data }">
                     <Select v-model="data.required_delivery" :options="dropdownRequireDelivery" filter
                         optionLabel="name" placeholder="Select Confirmation" class="w-full md:w-14rem"
                         @change="handleSelectChangeDeliveryConfimation(data)">
                         <template #value="slotProps">
-                            {{ data.required_delivery }}
-                            <div v-if="slotProps.value" class="flex align-items-center">
+                            <!-- {{ data.required_delivery }} -->
+                            <!-- <div v-if="slotProps.value" class="flex align-items-center">
 
                                 <div v-if="data.required_delivery != null || data.required_delivery.value !== null">
+                                    {{ data.required_delivery?.name || data.required_delivery }} </div>
+                                <div v-else>{{ slotProps.placeholder }}</div>
+                            </div> -->
+
+
+                            <div v-if="slotProps.value" class="flex align-items-center">
+
+                                <div v-if="data.required_delivery && data.required_delivery.value !== null">
                                     {{ data.required_delivery?.name || data.required_delivery }} </div>
                                 <div v-else>{{ slotProps.placeholder }}</div>
                             </div>
@@ -197,8 +206,8 @@
             <Column field="email" header="Email" style="min-width: 10rem"></Column>
             <Column field="payment_status" header="Payment Status" style="min-width: 10rem"></Column>
         </DataTable>
-
-        <!-- <nes-vue url="https://taiyuuki.github.io/nes-vue/Super Mario Bros (JU).nes" /> -->
+        <!-- 
+        <nes-vue url="https://taiyuuki.github.io/nes-vue/Super Mario Bros (JU).nes" /> -->
     </div>
 </template>
 
@@ -269,11 +278,12 @@ const filterTypes = ref([{ "id": 1, "name": "1st Stage Filter Only", }, { "id": 
 
 
 const dropdownRequireDelivery = ref([
-    { name: 'Confirm', value: true },
-    { name: 'Deny', value: false },
+    { name: 'Confirm', value: 'Confirm' },
+    { name: 'Deny', value: 'Deny' },
     { name: '- Unselect -', value: null },
 ]);
 // const selected = ref()
+const dates = ref();
 
 
 onMounted(() => {
@@ -353,7 +363,7 @@ const fetchData = async () => {
         const response = await router.get('/dashboard', {
             page: currentPage.value,
             search: search.value,
-            filters: filters.value,
+            dates: dates.value,
             stateId: selectedStateId.value === 0 ? null : selectedStateId.value,
             // filters: filters.value,
             // Add other parameters if needed
@@ -378,13 +388,6 @@ const fetchData = async () => {
 }
 
 
-// const formatDate = (value) => {
-//     return value.toLocaleDateString('en-US', {
-//         day: '2-digit',
-//         month: '2-digit',
-//         year: 'numeric'
-//     });
-// };
 
 
 const formatDate = (dateStr) => (dateStr ? new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null);
@@ -518,6 +521,17 @@ watch(selectedStateId, async (newStateId) => {
 });
 
 
+watch(dates, async (nesDates) => {
+    console.log('changed date, load fetch data 1')
+    if (nesDates) {
+        console.log('changed date, load fetch data 2')
+        fetchData()
+
+    }
+});
+
+
+
 // watch(selectedStateId, async (newStateId) => {
 //     if (newStateId) {
 //       fetc
@@ -567,18 +581,17 @@ watch(selectedStateId, async (newStateId) => {
 //       document.body.removeChild(link);
 //     };
 
-
 const downloadCSV = () => {
     // Define custom headers and corresponding columns
     const headers = {
-        //Record Type: C (Default) //A
-        //Receiver Code: //B
+        'Record Type': 'C',
+        'Reivery Code': '',
         'Receiver Name': 'customer_name', //C
-        //Receiver Address 1 //D
-        //Receiver Address 2 //E
-        //Receiver Address 3 //F
-        //Receiver Suburb //G
-        //Receiver Postcode //H
+        // Receiver Address 1 //D
+        // Receiver Address 2 //E
+        // Receiver Address 3 //F
+        // Receiver Suburb //G
+        // Receiver Postcode //H
         'Receiver Contact': 'customer_name',//I
         'Receiver Phone': 'phone', //J
         'Email': 'email', //K
@@ -596,8 +609,10 @@ const downloadCSV = () => {
     const mappedData = selectedItems.value.map(item => {
         let newItem = {};
         for (const [header, key] of Object.entries(headers)) {
-            newItem[header] = item[key];
+            newItem[header] = item[key]
         }
+
+        console.log(newItem)
         return newItem;
     });
 
@@ -620,7 +635,5 @@ const downloadCSV = () => {
     link.click();
     document.body.removeChild(link);
 };
-
-
 
 </script>

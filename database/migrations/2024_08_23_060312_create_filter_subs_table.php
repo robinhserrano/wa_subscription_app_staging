@@ -27,8 +27,8 @@ return new class extends Migration
             $table->timestamp('due_date')->nullable();
             $table->string('created_on_odoo')->nullable();
             $table->integer('odoo_created_by_id')->nullable();
-            $table->boolean('required_delivery')->nullable();
-            $table->integer('delivery_confirmed_by_id')->nullable();
+            $table->string('required_delivery')->nullable();
+            $table->integer('required_delivery_updated_by_id')->nullable();
             // $table->integer('last_confirmed_by')->nullable();
         });
     }
