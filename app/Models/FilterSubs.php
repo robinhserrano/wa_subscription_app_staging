@@ -15,4 +15,9 @@ class FilterSubs extends Model
     {
         return $this->hasMany(OrderLine::class, 'sales_order_no', 'sales_order_no');
     }
+
+    public function contactAddress()
+    {
+        return $this->hasMany(Contact::class, 'parent_customer_name', 'customer_name');
+    }
 }

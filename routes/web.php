@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ActivitySummary;
 use App\Models\FilterSubs;
 use App\Models\SalesOrder;
 use App\Models\StateId;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Request;
 use Carbon\Carbon;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
+    return Inertia::render('Auth/Login', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
@@ -43,6 +44,7 @@ Route::middleware([
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
         $dates = Request::input('dates', []);
 
+
         $query = FilterSubs::query();
 
         // if (!empty($dates)) {
@@ -58,17 +60,20 @@ Route::middleware([
         if (!empty($dates)) {
             $startDate = Carbon::parse($dates[0]);
             $endDate = isset($dates[1]) ? Carbon::parse($dates[1]) : null;
-        
+
 
             $query->where('due_date', '>=', $startDate);
 
-            if($endDate){
+            if ($endDate) {
                 $query->whereBetween('due_date', [$startDate, $endDate])
-                ->get();
+                    ->get();
             }
-           
         }
 
+        $activitySummary = Request::input('activitySummary', null);
+        if ($activitySummary !== null) {
+            $query->where('activity_summary', $activitySummary);
+        }
 
 
         $stateId = Request::input('stateId', null);
@@ -147,8 +152,9 @@ Route::middleware([
         //     ->orderBy($sortBy, $sortOrder);
 
         return Inertia::render('Dashboard', [
-            'filterSubs' => $query->with('orderLine')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
-            'stateIds'  => StateId::all()->sortByDesc('state_id')
+            'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
+            'stateIds'  => StateId::all()->sortByDesc('state_id'),
+            'activitySummaries'  => ActivitySummary::all(),
         ]);
     })->name('dashboard');
     Route::get('/confirmDeliveryRequirement', function () {

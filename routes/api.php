@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ActivitySummaryController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\FilterSubsController;
 use App\Http\Controllers\OrderLineController;
 use App\Http\Controllers\SalesOrderController;
@@ -53,3 +55,7 @@ Route::match(['put', 'patch'], '/updateCreatedOnOdooInFilterSubs/{id}', [FilterS
 Route::post('/bulkStateIdStore', [StateIdController::class, 'bulkStateIdStore']);
 
 Route::match(['put', 'patch'], '/updateRequiredDeliveryInFilterSubs/{id}', [FilterSubsController::class, 'updateRequiredDeliveryInFilterSubs']);
+
+Route::post('/bulkContactsStore', [ContactController::class, 'bulkContactsStore']);
+
+Route::post('/bulkActivitySummaryStore', [ActivitySummaryController::class, 'bulkActivitySummaryStore']);
