@@ -18,6 +18,6 @@ class FilterSubs extends Model
 
     public function contactAddress()
     {
-        return $this->hasMany(Contact::class, 'parent_customer_name', 'customer_name');
+        return $this->hasMany(Contact::class, 'name', 'customer_name')->with('children', 'parent');
     }
 }

@@ -1,24 +1,44 @@
 <template>
 
     <div class="card">
-        <div v-if="dates.length">
-            <i class="pi pi-calendar"></i> {{ formatDates(dates) }} <i class="pi pi-map-marker"></i>
+        <div>
+            <div class="m-4 my-4">
+                <i v-if="dates.length" class="pi pi-calendar"></i> {{ formatDates(dates) }}
+                <i class="pi pi-map-marker ml-4"></i> {{ selectedStateId }}
+            </div>
+
+
         </div>
 
         <Toast />
 
         <Drawer v-model:visible="visible" :header="selectedSalesOrderId" class="!w-full md:!w-80 lg:!w-[30rem]">
             <p>
-                {{ selectedCustomerName }}
+                <i class="pi pi-user"></i> {{ selectedCustomerName }}
             </p>
             <p>
-                {{ selectedCustomerAddress }}
+                <i class="pi pi-map-marker mt-2"></i> {{ selectedCustomerAddress }}
             </p>
-            <DataTable :value="selectedSalesOrderLines" dataKey="id" showGridlines class="mt-4">
+            <p class="mt-6"> Order Lines:</p>
+            <DataTable :value="selectedSalesOrderLines" dataKey="id" showGridlines class="mt-2">
                 <Column field="product" header="Product" style="min-width: 10rem"></Column>
                 <Column field="description" header="Description" style="min-width: 10rem"></Column>
                 <Column field="quantity" header="Quantity" style="min-width: 5rem"></Column>
             </DataTable>
+
+            <p class="mt-6 mb-2"> Other Address:</p>
+            <div>
+                <p v-if="selectedSalesOrder.contact_address[0].parent">
+                    <i class="pi pi-building-columns"></i> {{
+                        selectedSalesOrder.contact_address[0].parent.complete_address }}
+                </p>
+            </div>
+            <div>
+                <p v-for="(child, index) in selectedSalesOrder.contact_address[0].children" :key="index">
+                    <i class="pi pi-building"></i> {{ child.complete_address }}
+                </p>
+            </div>
+
         </Drawer>
         <Drawer v-model:visible="visibleRight" header="Filters" position="right" class="!w-full md:!w-80 lg:!w-[30rem]">
             <p class="mb-2 text-xl font-bold">States</p>
@@ -42,7 +62,7 @@
             <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
         </Drawer>
 
-        <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button>
+        <!-- <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button> -->
 
         <Paginator :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
             @page="handlePageChange">
@@ -51,8 +71,7 @@
             </template>
         </Paginator>
         <DataTable v-model:selection="selectedItems" v-model:filters="filters" :value="filterSubs.data" lazy
-            :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id" filterDisplay="menu"
-            :globalFilterFields="['customer_name', 'country.name', 'representative.name', 'balance', 'status']">
+            :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id" filterDisplay="menu">
             <template #header>
                 <div class="flex justify-between">
 
@@ -65,8 +84,8 @@
 
 
                             <Button @click="visibleRight = true" label="Filter" class="mr-4" />
-                            <InputText v-model="filters['global'].value" placeholder="Keyword Search"
-                                @input="handleSearch" />
+                            <!-- v-model="filters['global'].value"  -->
+                            <InputText placeholder="Keyword Search" @input="handleSearch" />
                         </div>
                     </IconField>
                 </div>
@@ -204,97 +223,48 @@ let props = defineProps({
     filterSubs: Object,
     stateIds: Object,
     activitySummaries: Object,
+    filterSubIds: Object,
 });
 
-const products = ref();
 const selectedItems = ref([]);
-// const filterSubs = ref();
 const filters = ref();
-// const paginator = ref();
-const statuses = ref(['unqualified', 'qualified', 'new', 'negotiation', 'renewal', 'proposal']);
 const loading = ref(true);
 const currentPage = ref(1);
 const totalRecord = ref(0);
 const search = ref();
 const visible = ref(false);
 const visibleRight = ref(false);
+const salesQuotations = ref();
+const dropdownOptions = ref([]);
+const toast = useToast()
+const stateIds = ref([])
 
 const selectedSalesOrderId = ref();
 const selectedSalesOrderLines = ref();
 const selectedCustomerName = ref();
 const selectedCustomerAddress = ref();
-
-const selectedCountry = ref();
-
-
-const salesQuotations = ref();
-const dropdownOptions = ref([]);
-const toast = useToast()
-
-const stateIds = ref([])
+const selectedCustomerContactAddress = ref([]);
 
 const selectedStateId = ref()
+
 const selectedType = ref()
 const filterTypes = ref([{ "id": 1, "name": "1st Stage Filter Only", }, { "id": 2, "name": "Filter Subscription", }, { "id": 3, "name": "All Types", }]);
-
-
 const dropdownRequireDelivery = ref([
     { name: 'Confirm', value: 'Confirm' },
     { name: 'Deny', value: 'Deny' },
     { name: '- Unselect -', value: null },
 ]);
-// const selected = ref()
 const dates = ref([]);
-
 const selectedActivitySummary = ref()
+const selectedSalesOrder = ref();
 
 
 onMounted(() => {
-    // filterSubs.value = filterSubs
     loading.value = false;
     totalRecord.value = props.filterSubs.total
     salesQuotations.value = props.salesQuotations
     stateIds.value = props.stateIds
-    //filterSubs.total;
-    // CustomerService.getCustomersLarge().then((data) => {
-    //     filterSubs.value = getCustomers(data);
-    //     loading.value = false;
-    // });
-    // paginator.value = {
-    //     // rows: 10, // Number of rows per page
-    //     // page: 1,  // Current page
-    //     // rowsPerPageOptions: [10, 25, 50],  // Options for rows per page
-    //     // totalRecords: 120
-    // }
-
 });
-
-
-
-
-const initFilters = () => {
-
-    filters.value = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        // customer_name: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        // 'country.name': { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-        // representative: { value: null, matchMode: FilterMatchMode.IN },
-        // invoice_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
-        // balance: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
-        // status: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
-        // activity: { value: [0, 100], matchMode: FilterMatchMode.BETWEEN },
-        // verified: { value: null, matchMode: FilterMatchMode.EQUALS }
-        due_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
-    };
-};
-
-initFilters();
-
-
-// const handClick = (event) => {
-//     currentPage.value = event.page + 1 // Adjusting because page index is 0-based
-//     fetchData(event)
-// }
 
 const handlePageChange = (event) => {
     currentPage.value = event.page + 1 // Adjusting because page index is 0-based
@@ -304,22 +274,14 @@ const handlePageChange = (event) => {
 }
 
 const handleSearch = (event) => {
-    // console.log(event)
-    search.value = event.target.value
-    console.log(event.target.value)
-    // var page = (parseInt(event.page + 1, 10) || 1)
-    debounce(fetchData(), 300);
+    search.value = event.target.value;
+    console.log(event.target.value);
+    debouncedFetchData();  // Call the debounced function
 };
 
 
 
 const fetchData = async () => {
-
-
-    // loading.value = true
-    // var page = (parseInt(event.page + 1, 10) || 1)
-    // var search = event.target.value
-
     try {
         console.log('fetch data page')
         console.log(currentPage.value)
@@ -329,18 +291,14 @@ const fetchData = async () => {
             dates: dates.value,
             stateId: selectedStateId.value === 0 ? null : selectedStateId.value,
             activitySummary: selectedActivitySummary.value,
-            // filters: filters.value,
-            // Add other parameters if needed
+
         }, {
-            // only: ['dashboard'],
             preserveState: true,
             replace: false,
             onSuccess: (newData) => {
                 console.log(newData)
-                // filterSubs.value.data = page.props.filterSubs.data
                 console.log(newData.props.filterSubs.total)
                 totalRecord.value = newData.props.filterSubs.total
-                // Make sure to handle total records if paginated
             },
         })
 
@@ -351,30 +309,37 @@ const fetchData = async () => {
     }
 }
 
+const debouncedFetchData = debounce(async () => {
+    try {
+        console.log('fetch data page');
+        console.log(currentPage.value);
+        const response = await router.get('/dashboard', {
+            page: currentPage.value,
+            search: search.value,
+            dates: dates.value,
+            stateId: selectedStateId.value === 0 ? null : selectedStateId.value,
+            activitySummary: selectedActivitySummary.value,
+        }, {
+            preserveState: true,
+            replace: false,
+            onSuccess: (newData) => {
+                console.log(newData);
+                console.log(newData.props.filterSubs.total);
+                totalRecord.value = newData.props.filterSubs.total;
+            },
+        });
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    } finally {
+        loading.value = false;
+    }
+}, 300);
+
 
 
 
 const formatDate = (dateStr) => (dateStr ? new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null);
-// const formatDates = (dates) => {
-//     if (dates) {
-//         if (dates.length === 1) {
-//             const date = new Date(dates[0]);
-//             return date.toLocaleDateString('en-PH', { day: '2-digit', month: '2-digit', year: 'numeric' });
-//         } else {
-//             const startDate = new Date(dates[0]);
-//             const endDate = new Date(dates[1]);
-//             return `${startDate.toLocaleDateString('en-PH', { day: '2-digit', month: '2-digit', year: 'numeric' })} to ${endDate.toLocaleDateString('en-PH', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
-//         }
-//     } else {
-//         console.log(dates)
-//         return ''
-//     }
-//     // if (dates.length === 0){
-//     //     return ''
-//     // }
-//     //else 
 
-// }
 const formatDates = (dates) => {
     if (!dates || dates.length === 0) {
         return '';
@@ -401,6 +366,9 @@ const handleCellClick = (salesOrder) => {
     selectedSalesOrderLines.value = salesOrder.order_line
     selectedCustomerName.value = salesOrder.customer_name
     selectedCustomerAddress.value = salesOrder.address
+    selectedCustomerContactAddress.value = salesOrder.contact_address
+
+    selectedSalesOrder.value = salesOrder;
     // Handle the click event here
     // console.log('Clicked sales order:', salesOrderNo);
     // Perform any desired actions, such as navigation or data manipulation
@@ -417,14 +385,16 @@ const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
         const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
             created_on_odoo: salesOrder.created_on_odoo.value,
         });
+        console.log('a')
+        console.log(salesOrder)
+        console.log('z')
+        console.log(response)
 
         console.log('handle select change')
-        toast.add({ severity: 'success', summary: 'Success', detail: 'Message Content', life: 3000 })
+        toast.add({ severity: 'success', summary: `Moved #${salesOrder.sales_order_no} for Confirm Delivery Requirement`, detail: '', life: 3000 })
     } catch (error) {
-
         console.error('Failed to update created_on_odoo:', error);
-        toast.add({ severity: 'success', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
-
+        toast.add({ severity: 'error', summary: 'Failed to update', detail: '', life: 3000 })
     }
 }
 
@@ -444,7 +414,7 @@ const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
     } catch (error) {
         // Handle error
         console.error('Failed to update created_on_odoo:', error);
-        toast.add({ severity: 'success', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
+        toast.add({ severity: 'error', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
         // this.$toast.add({ severity: 'error', summary: 'Update Failed', detail: 'Failed to update Created on Odoo.' });
     }
 }

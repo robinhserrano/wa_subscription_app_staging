@@ -23,25 +23,9 @@ class Contact extends Model
         return $this->belongsTo(Contact::class, 'parent_contact_id', 'contact_id');
     }
 
-    public function scopeWithRelations(Builder $query)
-    {
-        return $query->whereHas('children') // Contacts that have children
-            ->orWhereHas('parent'); // Contacts that have a parent
-    }
-
-    // Method to get all related contacts (both children and parent)
-    // public function allRelatedContacts()
+    // public function scopeWithRelations(Builder $query)
     // {
-    //     $relatedContacts = collect();
-
-    //     // Add all children
-    //     $relatedContacts = $relatedContacts->concat($this->children);
-
-    //     // Add parent if exists
-    //     if ($this->parent) {
-    //         $relatedContacts = $relatedContacts->concat([$this->parent]);
-    //     }
-
-    //     return $relatedContacts;
+    //     return $query->whereHas('children') // Contacts that have children
+    //         ->orWhereHas('parent'); // Contacts that have a parent
     // }
 }
