@@ -31,11 +31,11 @@ Route::middleware([
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
         $dates = Request::input('dates', []);
-
         $query = FilterSubs::query();
-        if (!empty($dates)) {
+        #->whereNull('created_on_odoo');
+        if (!empty ($dates)) {
             $startDate = Carbon::parse($dates[0]);
-            $endDate = isset($dates[1]) ? Carbon::parse($dates[1]) : null;
+            $endDate = isset ($dates[1]) ? Carbon::parse($dates[1]) : null;
             $query->where('due_date', '>=', $startDate);
             if ($endDate) {
                 $query->whereBetween('due_date', [$startDate, $endDate])
@@ -43,15 +43,26 @@ Route::middleware([
             }
         }
 
-        $activitySummary = Request::input('activitySummary', null);
-        if ($activitySummary !== null) {
-            $query->where('activity_summary', $activitySummary);
+        // $activitySummary = Request::input('activitySummary', null);
+        // if ($activitySummary !== null) {
+        //     $query->where('activity_summary', $activitySummary);
+        // }
+
+        $activitySummary = Request::input('activitySummary', []);
+        if ($activitySummary !== []) {
+            $query->whereIn('activity_summary', $activitySummary);
         }
 
-        $stateId = Request::input('stateId', null);
-        if ($stateId !== null  && $stateId < 9) {
-            $query->where('state_id', $stateId);
+
+        $stateId = Request::input('stateId', []);
+        if ($stateId !== []) {
+            $query->whereIn('state_id', $stateId);
         }
+
+        // $stateId = Request::input('stateId', null);
+        // if ($stateId !== null  && $stateId < 9) {
+        //     $query->where('state_id', $stateId);
+        // }
 
         if ($search = Request::input('search')) {
             $query->where('customer_name', 'like', "%{$search}%")->orWhere('sales_order_no', 'like', "%{$search}%");
@@ -60,8 +71,8 @@ Route::middleware([
         return Inertia::render('Dashboard', [
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
-            'stateIds'  => StateId::all()->sortByDesc('state_id'),
-            'activitySummaries'  => ActivitySummary::all(),
+            'stateIds' => StateId::all()->sortByDesc('state_id'),
+            'activitySummaries' => ActivitySummary::all(),
         ]);
     })->name('dashboard');
     Route::get('/confirmDeliveryRequirement', function () {
@@ -73,9 +84,9 @@ Route::middleware([
 
         $query = FilterSubs::query()->whereNotNull('created_on_odoo');
 
-        if (!empty($dates)) {
+        if (!empty ($dates)) {
             $startDate = Carbon::parse($dates[0]);
-            $endDate = isset($dates[1]) ? Carbon::parse($dates[1]) : null;
+            $endDate = isset ($dates[1]) ? Carbon::parse($dates[1]) : null;
             $query->where('due_date', '>=', $startDate);
             if ($endDate) {
                 $query->whereBetween('due_date', [$startDate, $endDate])
@@ -83,14 +94,15 @@ Route::middleware([
             }
         }
 
-        $activitySummary = Request::input('activitySummary', null);
-        if ($activitySummary !== null) {
-            $query->where('activity_summary', $activitySummary);
+        $activitySummary = Request::input('activitySummary', []);
+        if ($activitySummary !== []) {
+            $query->whereIn('activity_summary', $activitySummary);
         }
 
-        $stateId = Request::input('stateId', null);
-        if ($stateId !== null  && $stateId < 9) {
-            $query->where('state_id', $stateId);
+
+        $stateId = Request::input('stateId', []);
+        if ($stateId !== []) {
+            $query->whereIn('state_id', $stateId);
         }
 
         if ($search = Request::input('search')) {
@@ -100,8 +112,8 @@ Route::middleware([
         return Inertia::render('ConfirmDeliveryRequirement', [
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
-            'stateIds'  => StateId::all()->sortByDesc('state_id'),
-            'activitySummaries'  => ActivitySummary::all(),
+            'stateIds' => StateId::all()->sortByDesc('state_id'),
+            'activitySummaries' => ActivitySummary::all(),
         ]);
     })->name('confirmDeliveryRequirement');
 
@@ -113,13 +125,18 @@ Route::middleware([
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
 
-        $query = FilterSubs::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');;
+        $query = FilterSubs::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
+        ;
 
-        // $query = FilterSubs::query();
-        $stateId = Request::input('stateId', null);
+        $activitySummary = Request::input('activitySummary', []);
+        if ($activitySummary !== []) {
+            $query->whereIn('activity_summary', $activitySummary);
+        }
 
-        if ($stateId !== null  && $stateId < 9) {
-            $query->where('state_id', $stateId);
+
+        $stateId = Request::input('stateId', []);
+        if ($stateId !== []) {
+            $query->whereIn('state_id', $stateId);
         }
 
 
@@ -132,8 +149,8 @@ Route::middleware([
         return Inertia::render('SubscriptionsToDeliver', [
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
-            'stateIds'  => StateId::all()->sortByDesc('state_id'),
-            'activitySummaries'  => ActivitySummary::all(),
+            'stateIds' => StateId::all()->sortByDesc('state_id'),
+            'activitySummaries' => ActivitySummary::all(),
         ]);
     })->name('subscriptionsToDeliver');
     // Route::get('/subscriptionsToDeliver', function () {

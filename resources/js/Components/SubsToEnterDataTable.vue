@@ -4,10 +4,8 @@
         <div>
             <div class="m-4 my-4">
                 <i v-if="dates.length" class="pi pi-calendar"></i> {{ formatDates(dates) }}
-                <i class="pi pi-map-marker ml-4"></i> {{ selectedStateId }}
+                <!-- <i class="pi pi-map-marker ml-4"></i> {{ selectedStateId }} -->
             </div>
-
-
         </div>
 
         <Toast />
@@ -26,38 +24,49 @@
                 <Column field="quantity" header="Quantity" style="min-width: 5rem"></Column>
             </DataTable>
 
-            <p class="mt-6 mb-2"> Other Address:</p>
+
             <div>
                 <p v-if="selectedSalesOrder.contact_address[0].parent">
-                    <i class="pi pi-building-columns"></i> {{
-                        selectedSalesOrder.contact_address[0].parent.complete_address }}
+                <p class="mt-6 mb-2"> Other Address:</p>
+                <i class="pi pi-building-columns"></i> {{
+                    selectedSalesOrder.contact_address[0].parent.complete_address }}
                 </p>
             </div>
             <div>
                 <p v-for="(child, index) in selectedSalesOrder.contact_address[0].children" :key="index">
-                    <i class="pi pi-building"></i> {{ child.complete_address }}
+                <p class="mt-6 mb-2"> Other Address:</p>
+                <i class="pi pi-building"></i> {{ child.complete_address }}
                 </p>
             </div>
 
         </Drawer>
         <Drawer v-model:visible="visibleRight" header="Filters" position="right" class="!w-full md:!w-80 lg:!w-[30rem]">
             <p class="mb-2 text-xl font-bold">States</p>
-            <div v-for="category in stateIds" :key="category.id" class="flex items-center mb-2">
-                <RadioButton v-model="selectedStateId" :inputId="category.id" name="dynamic"
+            <div v-for="category of stateIds" :key="category.id" class="flex items-center mb-2">
+                <Checkbox v-model="selectedStateIds" :inputId="category.id" name="category"
                     :value="category.state_id" />
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
+
             <p class="mt-4 mb-2 text-xl font-bold">_ Category _</p>
             <div v-for="category in filterTypes" :key="category.id" class="flex items-center mb-2">
                 <RadioButton v-model="selectedType" :inputId="category.id" name="dynamic" :value="category.state_id" />
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
             <p class="mb-2 text-xl font-bold">Activity Summary</p>
-            <div v-for="category in activitySummaries" :key="category.id" class="flex items-center mb-2">
-                <RadioButton v-model="selectedActivitySummary" :inputId="category.id" name="dynamic"
+
+
+            <div v-for="category of activitySummaries" :key="category.id" class="flex items-center mb-2">
+                <Checkbox v-model="selectedActivitySummary" :inputId="category.id" name="category"
                     :value="category.activity_summary" />
                 <label :for="category.id" class="ml-2">{{ category.activity_summary }}</label>
             </div>
+
+            <!-- <div v-for="category in activitySummaries" :key="category.id" class="flex items-center mb-2">
+                <RadioButton v-model="selectedActivitySummary" :inputId="category.id" name="dynamic"
+                    :value="category.activity_summary" />
+                <label :for="category.id" class="ml-2">{{ category.activity_summary }}</label>
+            </div> -->
             <p class="mt-4 mb-2 text-xl font-bold">Date Range</p>
             <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
         </Drawer>
@@ -67,11 +76,13 @@
         <Paginator :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
             @page="handlePageChange">
             <template #start="slotProps">
-                {{ filterSubs.from }}-{{ filterSubs.to }} / {{ filterSubs.total }}
+                {{ filterSubs.from }}-{{ filterSubs.to }} /
+                {{ filterSubs.total - getCreatedOnOdoosNo(filterSubs.data) }}
             </template>
         </Paginator>
-        <DataTable v-model:selection="selectedItems" v-model:filters="filters" :value="filterSubs.data" lazy
-            :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id" filterDisplay="menu">
+        <DataTable v-model:selection="selectedItems" v-model:filters="filters" :value="getFilteredData(
+                    filterSubs.data)" lazy :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id"
+            filterDisplay="menu">
             <template #header>
                 <div class="flex justify-between">
 
@@ -97,7 +108,8 @@
             <Column field="sales_order_no" header="Sales Order No." style="min-width: 10rem">
                 <template #body="{ data }">
                     <span @click="handleCellClick(data)" class="cursor-pointer hover:underline">{{
-                        data.sales_order_no }}</span>
+                    data.sales_order_no }}</span>
+                     <font-awesome-icon icon="fa-filter-circle-dollar" class="ml-2" />
                 </template>
             </Column>
             <Column field="" header="Created on Odoo" style="min-width: 10rem">
@@ -182,7 +194,11 @@
             </Column>
             <Column field="phone" header="Phone" style="min-width: 10rem"></Column>
             <Column field="email" header="Email" style="min-width: 10rem"></Column>
-            <Column field="payment_status" header="Payment Status" style="min-width: 10rem"></Column>
+            <Column field="payment_status" header="Payment Status" style="min-width: 10rem">
+                <template #body="{ data }">
+                    <Tag v-if="data.payment_status === 'paid'" severity="success" value="Paid"></Tag>
+                </template>
+            </Column>
         </DataTable>
         <!-- 
         <nes-vue url="https://taiyuuki.github.io/nes-vue/Super Mario Bros (JU).nes" /> -->
@@ -245,7 +261,8 @@ const selectedCustomerName = ref();
 const selectedCustomerAddress = ref();
 const selectedCustomerContactAddress = ref([]);
 
-const selectedStateId = ref()
+
+const selectedStateIds = ref([])
 
 const selectedType = ref()
 const filterTypes = ref([{ "id": 1, "name": "1st Stage Filter Only", }, { "id": 2, "name": "Filter Subscription", }, { "id": 3, "name": "All Types", }]);
@@ -255,7 +272,7 @@ const dropdownRequireDelivery = ref([
     { name: '- Unselect -', value: null },
 ]);
 const dates = ref([]);
-const selectedActivitySummary = ref()
+const selectedActivitySummary = ref([])
 const selectedSalesOrder = ref();
 
 
@@ -289,7 +306,7 @@ const fetchData = async () => {
             page: currentPage.value,
             search: search.value,
             dates: dates.value,
-            stateId: selectedStateId.value === 0 ? null : selectedStateId.value,
+            stateId: selectedStateIds.value,
             activitySummary: selectedActivitySummary.value,
 
         }, {
@@ -317,7 +334,7 @@ const debouncedFetchData = debounce(async () => {
             page: currentPage.value,
             search: search.value,
             dates: dates.value,
-            stateId: selectedStateId.value === 0 ? null : selectedStateId.value,
+            stateId: selectedStateIds.value,
             activitySummary: selectedActivitySummary.value,
         }, {
             preserveState: true,
@@ -477,7 +494,7 @@ watch(selectedSalesOrderId, async (newSalesOrderId) => {
     }
 });
 
-watch(selectedStateId, async (newStateId) => {
+watch(selectedStateIds, async (newStateId) => {
     console.log('changed state, load fetch data 1')
     if (newStateId) {
         console.log('changed state, load fetch data 2')
@@ -501,6 +518,17 @@ watch(dates, async (nesDates) => {
 
     }
 });
+
+const getFilteredData = (data) => {
+    return data
+    // data.filter(item => item.created_on_odoo === null);
+}
+
+const getCreatedOnOdoosNo = (data) => {
+    return 0
+    // data.filter(item => item.created_on_odoo !== null).length;
+}
+
 
 const downloadCSV = () => {
     // Define custom headers and corresponding columns
