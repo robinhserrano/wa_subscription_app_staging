@@ -555,20 +555,25 @@ const getCreatedOnOdoosNo = (data) => {
 const downloadCSV = () => {
     // Define custom headers and corresponding columns
     const headers = {
-        'Record Type': 'C',
-        'Reivery Code': '',
+        'Record Type': 'recordType',//A
+        'Receiver Code': 'receiverCode',//B
         'Receiver Name': 'customer_name', //C
-        // Receiver Address 1 //D
-        // Receiver Address 2 //E
-        // Receiver Address 3 //F
-        // Receiver Suburb //G
-        // Receiver Postcode //H
-        'Receiver Contact': 'customer_name',//I
+        'Receiver Address 1': 'receiverAddress1', //D
+        'Receiver Address 2': 'receiverAddress2', //E
+        'Receiver Address 3': 'receiverAddress3',//F
+        'Receiver Suburb': 'receiverSuburb',   //G
+        'Receiver Postcode': 'receiverPostcode',  //H
+        'Receiver Contact': 'receiverContact',//I
         'Receiver Phone': 'phone', //J
         'Email': 'email', //K
-        'Reference 1': 'invoice_number', //L
-        'Reference 2': 'invoice_date', //M
-        'Payment Status': 'payment_status', //N
+        'Reference 1': 'sales_order_no', //L
+        'Reference 2': '', //M
+        'Special Instructions': '', //N
+        'Service Code': 'serviceCode',
+        'Number of Items': 'numberOfItems',
+        'Total Weight': 'totalWeight',
+        'Total Cubic Volume': 'totalCubicVolume',
+        'Authority to Leave': 'authorityToLeave', //S
         //O
         //P
         //Q
@@ -576,8 +581,28 @@ const downloadCSV = () => {
         //'Authority to Leave': Y (Default) //S
     };
 
+
     // Map JSON data to include only selected columns with custom headers
     const mappedData = selectedItems.value.map(item => {
+        console.log('A')
+        console.log(item['address'])
+        console.log(item['contact_address'].complete_address)
+        console.log('B')
+        item.recordType = 'C'
+        item.receiverCode = null
+        item.receiverAddress1 = compareAddresses(item['address'], item['contact_address'][0].complete_address)
+        item.receiverAddress2 = '2'
+        item.receiverAddress3 = '3'
+        item.receiverSuburb = 'S'
+        item.receiverPostcode = 'P'
+        item.reference2 = null
+        item.specialInstructions = null
+        item.serviceCode = 'TB1'
+        item.numberOfItems = 1
+        item.totalWeight = 1
+        item.totalCubicVolume = 0.004
+        item.authorityToLeave = 'Y'
+
         let newItem = {};
         for (const [header, key] of Object.entries(headers)) {
             newItem[header] = item[key]
@@ -605,8 +630,21 @@ const downloadCSV = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-
 };
 
+function compareAddresses(originalAddress, contactAddress,
+    // childAddress, parentAddress
+) {
+    // Split the addresses into individual components
+    const originalAddressComponents = originalAddress.split('\n');
+    const contactAddressComponents = contactAddress.split(',');
+
+    // Compare the first component (street number)
+    if (originalAddressComponents[0] === contactAddressComponents[0] || originalAddressComponents[1] === contactAddressComponents[0]) {
+        return contactAddress;
+    }
+
+    // If the first component matches, the addresses are equal
+    return originalAddress;
+}
 </script>
