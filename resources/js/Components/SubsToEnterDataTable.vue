@@ -223,7 +223,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, useAttrs, computed  } from 'vue';
 import { CustomerService } from '@/service/CustomerService';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import DataTable from 'primevue/datatable';
@@ -252,6 +252,7 @@ import RadioButton from 'primevue/radiobutton';
 import * as XLSX from 'xlsx';
 import 'primeicons/primeicons.css'
 
+const attrs = useAttrs()
 let props = defineProps({
     filterSubs: Object,
     stateIds: Object,
@@ -437,6 +438,7 @@ const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
     try {
         const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
             created_on_odoo: salesOrder.created_on_odoo.value,
+            // ''
         });
         console.log('a')
         console.log(salesOrder)
@@ -551,7 +553,7 @@ const getCreatedOnOdoosNo = (data) => {
 // }
 
 
-
+// const username = computed(() => props.auth?.user?.username || 'Guest');
 const downloadCSV = () => {
     // Define custom headers and corresponding columns
     const headers = {

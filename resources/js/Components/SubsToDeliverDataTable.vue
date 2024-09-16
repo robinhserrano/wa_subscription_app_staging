@@ -437,6 +437,7 @@ const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
     try {
         const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
             created_on_odoo: salesOrder.created_on_odoo.value,
+            
         });
         console.log('a')
         console.log(salesOrder)
@@ -590,11 +591,14 @@ const downloadCSV = () => {
         console.log('B')
         item.recordType = 'C'
         item.receiverCode = null
+        
+
+
         item.receiverAddress1 = compareAddresses(item['address'], item['contact_address'][0].complete_address)
-        item.receiverAddress2 = '2'
-        item.receiverAddress3 = '3'
-        item.receiverSuburb = 'S'
-        item.receiverPostcode = 'P'
+        item.receiverAddress2 = null
+        item.receiverAddress3 = null
+        item.receiverSuburb = null
+        item.receiverPostcode = null
         item.reference2 = null
         item.specialInstructions = null
         item.serviceCode = 'TB1'
