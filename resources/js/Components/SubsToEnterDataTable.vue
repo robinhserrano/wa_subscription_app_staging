@@ -1,3 +1,4 @@
+
 <template>
     <div class="card">
         <div>
@@ -85,7 +86,7 @@
 
         <!-- <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button> -->
 
-        <Paginator :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
+        <Paginator :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100,]"
             @page="handlePageChange">
             <template #start="slotProps">
                 {{ filterSubs.from }}-{{ filterSubs.to }} /

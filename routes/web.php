@@ -41,6 +41,8 @@ Route::middleware([
                 $query->whereBetween('due_date', [$startDate, $endDate])
                     ->get();
             }
+
+            $query->orderBy('customer_name', 'asc');
         }
 
         $categories = Request::input('categories', []);
@@ -87,6 +89,8 @@ Route::middleware([
                 $query->whereBetween('due_date', [$startDate, $endDate])
                     ->get();
             }
+
+            $query->orderBy('customer_name', 'asc');
         }
         $categories = Request::input('categories', []);
         if ($categories !== []) {
@@ -125,8 +129,21 @@ Route::middleware([
         $perPage = (int) Request::input('perPage', 100);
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
+        $dates = Request::input('dates', []);
 
         $query = FilterSubs::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');;
+
+        if (!empty($dates)) {
+            $startDate = Carbon::parse($dates[0]);
+            $endDate = isset($dates[1]) ? Carbon::parse($dates[1]) : null;
+            $query->where('due_date', '>=', $startDate);
+            if ($endDate) {
+                $query->whereBetween('due_date', [$startDate, $endDate])
+                    ->get();
+            }
+
+            $query->orderBy('customer_name', 'asc');
+        }
 
         $categories = Request::input('categories', []);
         if ($categories !== []) {
