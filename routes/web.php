@@ -33,9 +33,9 @@ Route::middleware([
         $dates = Request::input('dates', []);
         $query = FilterSubs::query();
         #->whereNull('created_on_odoo');
-        if (!empty ($dates)) {
+        if (!empty($dates)) {
             $startDate = Carbon::parse($dates[0]);
-            $endDate = isset ($dates[1]) ? Carbon::parse($dates[1]) : null;
+            $endDate = isset($dates[1]) ? Carbon::parse($dates[1]) : null;
             $query->where('due_date', '>=', $startDate);
             if ($endDate) {
                 $query->whereBetween('due_date', [$startDate, $endDate])
@@ -43,10 +43,10 @@ Route::middleware([
             }
         }
 
-        // $activitySummary = Request::input('activitySummary', null);
-        // if ($activitySummary !== null) {
-        //     $query->where('activity_summary', $activitySummary);
-        // }
+        $categories = Request::input('categories', []);
+        if ($categories !== []) {
+            $query->whereIn('category', $categories);
+        }
 
         $activitySummary = Request::input('activitySummary', []);
         if ($activitySummary !== []) {
@@ -59,11 +59,6 @@ Route::middleware([
             $query->whereIn('state_id', $stateId);
         }
 
-        // $stateId = Request::input('stateId', null);
-        // if ($stateId !== null  && $stateId < 9) {
-        //     $query->where('state_id', $stateId);
-        // }
-
         if ($search = Request::input('search')) {
             $query->where('customer_name', 'like', "%{$search}%")->orWhere('sales_order_no', 'like', "%{$search}%");
         }
@@ -72,7 +67,7 @@ Route::middleware([
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
             'stateIds' => StateId::all()->sortByDesc('state_id'),
-            'activitySummaries' => ActivitySummary::all(),
+            // 'activitySummaries' => ActivitySummary::all(),
         ]);
     })->name('dashboard');
     Route::get('/confirmDeliveryRequirement', function () {
@@ -84,14 +79,18 @@ Route::middleware([
 
         $query = FilterSubs::query()->whereNotNull('created_on_odoo');
 
-        if (!empty ($dates)) {
+        if (!empty($dates)) {
             $startDate = Carbon::parse($dates[0]);
-            $endDate = isset ($dates[1]) ? Carbon::parse($dates[1]) : null;
+            $endDate = isset($dates[1]) ? Carbon::parse($dates[1]) : null;
             $query->where('due_date', '>=', $startDate);
             if ($endDate) {
                 $query->whereBetween('due_date', [$startDate, $endDate])
                     ->get();
             }
+        }
+        $categories = Request::input('categories', []);
+        if ($categories !== []) {
+            $query->whereIn('category', $categories);
         }
 
         $activitySummary = Request::input('activitySummary', []);
@@ -105,6 +104,8 @@ Route::middleware([
             $query->whereIn('state_id', $stateId);
         }
 
+
+
         if ($search = Request::input('search')) {
             $query->where('customer_name', 'like', "%{$search}%")->orWhere('sales_order_no', 'like', "%{$search}%");
         }
@@ -113,7 +114,7 @@ Route::middleware([
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
             'stateIds' => StateId::all()->sortByDesc('state_id'),
-            'activitySummaries' => ActivitySummary::all(),
+            // 'activitySummaries' => ActivitySummary::all(),
         ]);
     })->name('confirmDeliveryRequirement');
 
@@ -125,8 +126,12 @@ Route::middleware([
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
 
-        $query = FilterSubs::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
-        ;
+        $query = FilterSubs::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');;
+
+        $categories = Request::input('categories', []);
+        if ($categories !== []) {
+            $query->whereIn('category', $categories);
+        }
 
         $activitySummary = Request::input('activitySummary', []);
         if ($activitySummary !== []) {
@@ -150,47 +155,7 @@ Route::middleware([
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
             'stateIds' => StateId::all()->sortByDesc('state_id'),
-            'activitySummaries' => ActivitySummary::all(),
+            // 'activitySummaries' => ActivitySummary::all(),
         ]);
     })->name('subscriptionsToDeliver');
-    // Route::get('/subscriptionsToDeliver', function () {
-    //     $currentPage = (int) Request::input('page', 1);
-    //     $perPage = (int) Request::input('perPage', 100);
-    //     $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
-    //     $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
-    //     $dates = Request::input('dates', []);
-
-    //     $query = FilterSubs::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
-
-    //     if (!empty($dates)) {
-    //         $startDate = Carbon::parse($dates[0]);
-    //         $endDate = isset($dates[1]) ? Carbon::parse($dates[1]) : null;
-    //         $query->where('due_date', '>=', $startDate);
-    //         if ($endDate) {
-    //             $query->whereBetween('due_date', [$startDate, $endDate])
-    //                 ->get();
-    //         }
-    //     }
-
-    //     $activitySummary = Request::input('activitySummary', null);
-    //     if ($activitySummary !== null) {
-    //         $query->where('activity_summary', $activitySummary);
-    //     }
-
-    //     $stateId = Request::input('stateId', null);
-    //     if ($stateId !== null  && $stateId < 9) {
-    //         $query->where('state_id', $stateId);
-    //     }
-
-    //     if ($search = Request::input('search')) {
-    //         $query->where('customer_name', 'like', "%{$search}%")->orWhere('sales_order_no', 'like', "%{$search}%");
-    //     }
-    //     $query->orderBy($sortBy, $sortOrder);
-    //     return Inertia::render('SubscriptionsToDeliver', [
-    //         'filterSubIds' => $query->pluck('id'),
-    //         'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
-    //         'stateIds'  => StateId::all()->sortByDesc('state_id'),
-    //         'activitySummaries'  => ActivitySummary::all(),
-    //     ]);
-    // })->name('subscriptionsToDeliver');
 });

@@ -96,7 +96,7 @@ class FilterSubsController extends Controller
 
     public function bulkStoreFilterSubs(Request $request)
     {
-        $allowedFilterSubs = ['invoice_number', 'sales_order_no', 'customer_name', 'invoice_date', 'payment_status', 'address', 'state_id', 'activity_summary', 'phone', 'email', 'due_date'];
+        $allowedFilterSubs = ['invoice_number', 'sales_order_no', 'customer_name', 'invoice_date', 'payment_status', 'address', 'state_id', 'activity_summary', 'phone', 'email', 'due_date', 'category'];
 
         $filterSubsList = $request->all();
         $newFilterSubs = [];

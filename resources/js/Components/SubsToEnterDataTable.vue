@@ -1,5 +1,4 @@
 <template>
-
     <div class="card">
         <div>
             <div class="m-4 my-4">
@@ -7,7 +6,6 @@
                 <!-- <i class="pi pi-map-marker ml-4"></i> {{ selectedStateId }} -->
             </div>
         </div>
-
         <Toast />
 
         <Drawer v-model:visible="visible" :header="selectedSalesOrderId" class="!w-full md:!w-80 lg:!w-[30rem]">
@@ -43,24 +41,38 @@
         <Drawer v-model:visible="visibleRight" header="Filters" position="right" class="!w-full md:!w-80 lg:!w-[30rem]">
             <p class="mb-2 text-xl font-bold">States</p>
             <div v-for="category of stateIds" :key="category.id" class="flex items-center mb-2">
-                <Checkbox v-model="selectedStateIds" :inputId="category.id" name="category"
+                <Checkbox v-model="selectedStateIds" :inputId="category.state_id" name="stateIds"
                     :value="category.state_id" />
+                <label :for="category.id" class="ml-2">{{
+                    category.name
+                    }}</label>
+            </div>
+
+
+            <p class="mt-4 mb-2 text-xl font-bold">Category</p>
+            <div v-for="category of categoryTypes" :key="category.id" class="flex items-center mb-2">
+                <Checkbox v-model="selectedCategories" :inputId="category.name" name="category"
+                    :value="category.name" />
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
 
-            <p class="mt-4 mb-2 text-xl font-bold">_ Category _</p>
-            <div v-for="category in filterTypes" :key="category.id" class="flex items-center mb-2">
-                <RadioButton v-model="selectedType" :inputId="category.id" name="dynamic" :value="category.state_id" />
+
+            
+            <p class="mt-4 mb-2 text-xl font-bold">Activity Summary</p>
+            <div v-for="category of activitySummaryTypes" :key="category.id" class="flex items-center mb-2">
+                <Checkbox v-model="selectedActivitySummary" :inputId="category.name" name="category"
+                    :value="category.name" />
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
-            <p class="mb-2 text-xl font-bold">Activity Summary</p>
+
+            <!-- <p class="mb-2 text-xl font-bold">Activity Summary</p> -->
 
 
-            <div v-for="category of activitySummaries" :key="category.id" class="flex items-center mb-2">
-                <Checkbox v-model="selectedActivitySummary" :inputId="category.id" name="category"
-                    :value="category.activity_summary" />
+            <!-- <div v-for="category of activitySummaries" :key="category.id" class="flex items-center mb-2">
+                <Checkbox v-model="selectedActivitySummary" :inputId="category.activity_summary"
+                    name="activitySummaries" :value="category.activity_summary" />
                 <label :for="category.id" class="ml-2">{{ category.activity_summary }}</label>
-            </div>
+            </div> -->
 
             <!-- <div v-for="category in activitySummaries" :key="category.id" class="flex items-center mb-2">
                 <RadioButton v-model="selectedActivitySummary" :inputId="category.id" name="dynamic"
@@ -80,8 +92,8 @@
                 {{ filterSubs.total - getCreatedOnOdoosNo(filterSubs.data) }}
             </template>
         </Paginator>
-        <DataTable v-model:selection="selectedItems" v-model:filters="filters" :value="getFilteredData(
-                    filterSubs.data)" lazy :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id"
+        <DataTable v-model:selection="selectedItems" :value="getFilteredData(
+            filterSubs.data)" lazy :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id"
             filterDisplay="menu">
             <template #header>
                 <div class="flex justify-between">
@@ -108,8 +120,13 @@
             <Column field="sales_order_no" header="Sales Order No." style="min-width: 10rem">
                 <template #body="{ data }">
                     <span @click="handleCellClick(data)" class="cursor-pointer hover:underline">{{
-                    data.sales_order_no }}</span>
-                     <font-awesome-icon icon="fa-filter-circle-dollar" class="ml-2" />
+                        data.sales_order_no }}
+
+                        <!-- {{ data.category }} -->
+
+                    </span>
+                    <font-awesome-icon v-if="data.category === 'Subscription'" icon="fa-filter-circle-dollar"
+                        class="ml-2" />
                 </template>
             </Column>
             <Column field="" header="Created on Odoo" style="min-width: 10rem">
@@ -238,7 +255,7 @@ import 'primeicons/primeicons.css'
 let props = defineProps({
     filterSubs: Object,
     stateIds: Object,
-    activitySummaries: Object,
+    // activitySummaries: Object,
     filterSubIds: Object,
 });
 
@@ -262,18 +279,36 @@ const selectedCustomerAddress = ref();
 const selectedCustomerContactAddress = ref([]);
 
 
-const selectedStateIds = ref([])
+
 
 const selectedType = ref()
-const filterTypes = ref([{ "id": 1, "name": "1st Stage Filter Only", }, { "id": 2, "name": "Filter Subscription", }, { "id": 3, "name": "All Types", }]);
+const categoryTypes = ref([{ "id": 1, "name": "Subscription", },
+    //  { "id": 2, "name": "1st Stage Filter Only", },
+]);
+
+const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter"},
+    {"id": 2, "name": "Independent 3 + 3 Due for Change"},
+    {"id": 3, "name": "Independent 3 + 3 Expires"},
+    {"id": 4, "name": "3 + 3 Stage Filter"},
+    {"id": 5, "name": "3 Stage Filter"},
+    {"id": 6, "name": "3 + 3 Stage Filter Expires"},
+    {"id": 7, "name": "3 Stage Filter Expires"},
+    {"id": 8, "name": "Final Date to Order Filters for Warranty Extension"},
+]);
+
 const dropdownRequireDelivery = ref([
+
     { name: 'Confirm', value: 'Confirm' },
     { name: 'Deny', value: 'Deny' },
     { name: '- Unselect -', value: null },
 ]);
 const dates = ref([]);
-const selectedActivitySummary = ref([])
+
 const selectedSalesOrder = ref();
+
+const selectedStateIds = ref([])
+const selectedActivitySummary = ref([])
+const selectedCategories = ref([])
 
 
 onMounted(() => {
@@ -308,7 +343,7 @@ const fetchData = async () => {
             dates: dates.value,
             stateId: selectedStateIds.value,
             activitySummary: selectedActivitySummary.value,
-
+            categories: selectedCategories.value,
         }, {
             preserveState: true,
             replace: false,
@@ -336,6 +371,7 @@ const debouncedFetchData = debounce(async () => {
             dates: dates.value,
             stateId: selectedStateIds.value,
             activitySummary: selectedActivitySummary.value,
+            categories: selectedCategories.value,
         }, {
             preserveState: true,
             replace: false,
@@ -436,37 +472,6 @@ const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
     }
 }
 
-
-
-
-
-const getCustomers = (data) => {
-    return [...(data || [])].map((d) => {
-        d.date = new Date(d.date);
-
-        return d;
-    });
-};
-const getSeverity = (status) => {
-    switch (status) {
-        case 'unqualified':
-            return 'danger';
-
-        case 'qualified':
-            return 'success';
-
-        case 'new':
-            return 'info';
-
-        case 'negotiation':
-            return 'warn';
-
-        case 'renewal':
-            return null;
-    }
-};
-
-
 watch(selectedSalesOrderId, async (newSalesOrderId) => {
     if (newSalesOrderId) {
         try {
@@ -519,6 +524,18 @@ watch(dates, async (nesDates) => {
     }
 });
 
+watch(selectedCategories, async (newCategory) => {
+    console.log('changed date, load fetch data 1')
+    if (newCategory) {
+        console.log('changed date, load fetch data 2')
+        fetchData()
+
+    }
+});
+
+
+
+
 const getFilteredData = (data) => {
     return data
     // data.filter(item => item.created_on_odoo === null);
@@ -528,6 +545,11 @@ const getCreatedOnOdoosNo = (data) => {
     return 0
     // data.filter(item => item.created_on_odoo !== null).length;
 }
+
+// const capitalizeFirstLetter = (string) => {
+//     return string.charAt(0).toUpperCase() + string.slice(1);
+// }
+
 
 
 const downloadCSV = () => {
@@ -583,6 +605,8 @@ const downloadCSV = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+
 };
 
 </script>

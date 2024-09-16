@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
 
     <div class="card">
         {{ dates }}
@@ -42,7 +42,7 @@
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
 
-            <p class="mt-4 mb-2 text-xl font-bold">_ Category _</p>
+            <p class="mt-4 mb-2 text-xl font-bold">Category</p>
             <!-- {{ stateIds }} -->
             <div v-for="category in filterTypes" :key="category.id" class="flex items-center mb-2">
                 <RadioButton v-model="selectedType" :inputId="category.id" name="dynamic" :value="category.state_id" />
@@ -448,7 +448,7 @@ const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
     } catch (error) {
         // Handle error
         console.error('Failed to update created_on_odoo:', error);
-        toast.add({ severity: 'success', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
+        toast.add({ severity: 'error', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
         // this.$toast.add({ severity: 'error', summary: 'Update Failed', detail: 'Failed to update Created on Odoo.' });
     }
 }
@@ -499,7 +499,6 @@ watch(selectedSalesOrderId, async (newSalesOrderId) => {
             dropdownOptions.value = response.data.map(item => ({
                 name: item.sales_order_no,
                 value: item.sales_order_no,
-
             })
 
 
@@ -636,4 +635,4 @@ const downloadCSV = () => {
     document.body.removeChild(link);
 };
 
-</script>
+</script> -->

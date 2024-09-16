@@ -29,7 +29,7 @@ return new class extends Migration
             $table->integer('odoo_created_by_id')->nullable();
             $table->string('required_delivery')->nullable();
             $table->integer('required_delivery_updated_by_id')->nullable();
-            // $table->integer('last_confirmed_by')->nullable();
+            $table->string('category')->nullable();
         });
     }
     /**
