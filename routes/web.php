@@ -4,6 +4,7 @@ use App\Models\ActivitySummary;
 use App\Models\FilterSubs;
 use App\Models\SalesOrder;
 use App\Models\StateId;
+use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -68,6 +69,7 @@ Route::middleware([
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
             'stateIds' => StateId::all()->sortByDesc('state_id'),
+
             // 'activitySummaries' => ActivitySummary::all(),
         ]);
     })->name('dashboard');
@@ -117,7 +119,7 @@ Route::middleware([
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
             'stateIds' => StateId::all()->sortByDesc('state_id'),
-            // 'activitySummaries' => ActivitySummary::all(),
+            'users' => User::all(),
         ]);
     })->name('confirmDeliveryRequirement');
 
@@ -171,7 +173,7 @@ Route::middleware([
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
             'stateIds' => StateId::all()->sortByDesc('state_id'),
-            // 'activitySummaries' => ActivitySummary::all(),
+            'users' => User::all(),
         ]);
     })->name('subscriptionsToDeliver');
 });

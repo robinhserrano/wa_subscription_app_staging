@@ -144,8 +144,10 @@ class FilterSubsController extends Controller
         try {
             $filterSub = FilterSubs::findOrFail($id);
             $createdOnOdoo = $request->input('created_on_odoo');
+            $odooCreatedById = $request->input('odoo_created_by_id');
 
             $filterSub->created_on_odoo = $createdOnOdoo;
+            $filterSub->odoo_created_by_id = $odooCreatedById;
             $filterSub->save();
 
             return response()->json(['filterSub' => $filterSub, 'message' => 'CreatedOnOdoo updated successfully'], 200);
@@ -161,8 +163,10 @@ class FilterSubsController extends Controller
         try {
             $filterSub = FilterSubs::findOrFail($id);
             $requiredDelivery = $request->input('required_delivery');
+            $requiredDeliveryUpdatedById = $request->input('required_delivery_updated_by_id');
 
             $filterSub->required_delivery = $requiredDelivery;
+            $filterSub->required_delivery_updated_by_id = $requiredDeliveryUpdatedById;
             $filterSub->save();
 
             return response()->json(['filterSub' => $filterSub, 'message' => 'required_delivery updated successfully'], 200);

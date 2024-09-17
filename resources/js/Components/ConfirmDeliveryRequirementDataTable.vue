@@ -131,50 +131,63 @@
             </Column>
             <Column field="" header="Created on Odoo" style="min-width: 10rem">
                 <template #body="{ data }">
-                    <Select v-model="data.created_on_odoo" :options="dropdownOptions" filter optionLabel="name"
-                        placeholder="Select Sales Order #" class="w-full md:w-14rem"
-                        @click="handleSelectClickOdooCreatedBy(data)" @change="handleSelectChangeOdooCreatedBy(data)">
-                        <template #value="slotProps">
-                            <div v-if="slotProps.value" class="flex align-items-center">
+                    <div class="flex">
+                        <Select v-model="data.created_on_odoo" :options="dropdownOptions" filter optionLabel="name"
+                            placeholder="Select Sales Order #" class="w-full md:w-14rem"
+                            @click="handleSelectClickOdooCreatedBy(data)"
+                            @change="handleSelectChangeOdooCreatedBy(data)">
+                            <template #value="slotProps">
+                                <div v-if="slotProps.value" class="flex align-items-center">
 
-                                <div v-if="data.created_on_odoo && data.created_on_odoo.value !== null">
-                                    {{ data.created_on_odoo?.name || data.created_on_odoo }} </div>
-                                <div v-else>{{ slotProps.placeholder }}</div>
-                            </div>
-                            <span v-else>
-                                {{ slotProps.placeholder }}
-                            </span>
+                                    <div v-if="data.created_on_odoo && data.created_on_odoo.value !== null">
+                                        {{ data.created_on_odoo?.name || data.created_on_odoo }}</div>
+                                    <div v-else>{{ slotProps.placeholder }}</div>
+                                </div>
+                                <span v-else>
+                                    {{ slotProps.placeholder }}
+                                </span>
 
-                        </template>
-                        <template #option="slotProps">
-                            <div class="flex align-items-center">
-                                <div>{{ slotProps.option.name }}</div>
-                            </div>
-                        </template>
-                    </Select>
+                            </template>
+                            <template #option="slotProps">
+                                <div class="flex align-items-center">
+                                    <div>{{ slotProps.option.name }}</div>
+                                </div>
+                            </template>
+                        </Select>
+
+                        <Avatar v-if="data.odoo_created_by_id" :label="avatarImage(data.odoo_created_by_id, users)"
+                            class="ml-2" style="background-color: #dee9fc; color: #1a2551" />
+                    </div>
                 </template>
             </Column>
             <Column field="" header="Require Delivery" style="min-width: 10rem">
                 <template #body="{ data }">
-                    <Select v-model="data.required_delivery" :options="dropdownRequireDelivery" filter
-                        optionLabel="name" placeholder="Select Confirmation" class="w-full md:w-14rem"
-                        @change="handleSelectChangeDeliveryConfimation(data)">
-                        <template #value="slotProps">
-                            <div v-if="slotProps.value" class="flex align-items-center">
-                                <div v-if="data.required_delivery && data.required_delivery.value !== null">
-                                    {{ data.required_delivery?.name || data.required_delivery }} </div>
-                                <div v-else>{{ slotProps.placeholder }}</div>
-                            </div>
-                            <span v-else>
-                                {{ slotProps.placeholder }}
-                            </span>
-                        </template>
-                        <template #option="slotProps">
-                            <div class="flex align-items-center">
-                                <div>{{ slotProps.option.name }}</div>
-                            </div>
-                        </template>
-                    </Select>
+                    <div class="flex">
+                        <Select v-model="data.required_delivery" :options="dropdownRequireDelivery" filter
+                            optionLabel="name" placeholder="Select Confirmation" class="w-full md:w-14rem"
+                            @change="handleSelectChangeDeliveryConfimation(data)">
+                            <template #value="slotProps">
+                                <div v-if="slotProps.value" class="flex align-items-center">
+                                    <div v-if="data.required_delivery && data.required_delivery.value !== null">
+                                        {{ data.required_delivery?.name || data.required_delivery }} </div>
+                                    <div v-else>{{ slotProps.placeholder }}</div>
+                                </div>
+                                <span v-else>
+                                    {{ slotProps.placeholder }}
+                                </span>
+                            </template>
+                            <template #option="slotProps">
+                                <div class="flex align-items-center">
+                                    <div>{{ slotProps.option.name }}</div>
+                                </div>
+                            </template>
+                        </Select>
+
+
+                        <Avatar v-if="data.required_delivery_updated_by_id"
+                            :label="avatarImage(data.required_delivery_updated_by_id, users)" class="ml-2"
+                            style="background-color: #dee9fc; color: #1a2551" />
+                    </div>
                 </template>
             </Column>
             <!-- <Column v-if="route().current('confirmDeliveryRequirement')" field="customer_name" header="Customer Name"
@@ -250,12 +263,14 @@ import { useToast } from 'primevue/usetoast'
 import RadioButton from 'primevue/radiobutton';
 import * as XLSX from 'xlsx';
 import 'primeicons/primeicons.css'
+import Avatar from 'primevue/avatar';
 
 let props = defineProps({
     filterSubs: Object,
     stateIds: Object,
-    // activitySummaries: Object,
     filterSubIds: Object,
+    currentUser: Object,
+    users: Object,
 });
 
 const selectedItems = ref([]);
@@ -437,7 +452,7 @@ const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
 
         const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
             created_on_odoo: salesOrder.created_on_odoo.value,
-            // ''
+            odoo_created_by_id: props.currentUser.id,
         });
         if (salesOrder.created_on_odoo?.value) {
             toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no}'s created on odoo to ${salesOrder.created_on_odoo.value}`, detail: '', life: 3000 })
@@ -455,6 +470,7 @@ const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
     try {
         const response = await axios.put(`/api/updateRequiredDeliveryInFilterSubs/${salesOrder.id}`, {
             required_delivery: salesOrder.required_delivery.value,
+            required_delivery_updated_by_id: props.currentUser.id,
         });
 
         if (salesOrder.required_delivery?.value) {
@@ -549,10 +565,21 @@ const getCreatedOnOdoosNo = (data) => {
             || item.created_on_odoo?.value === null || item.created_on_odoo === undefined
     ).length;
 }
-// const capitalizeFirstLetter = (string) => {
-//     return string.charAt(0).toUpperCase() + string.slice(1);
-// }
 
+const avatarImage = (userId, users) => {
+    // Find the user with the given userId
+    const user = users.find(user => user.id === userId);
+
+    // If user is found, extract initials from their name
+    if (user) {
+        const initials = user.name.split(' ').map(word => word[0]).join('').toUpperCase();
+        const maxInitials = 2;
+        return initials.substring(0, maxInitials) || initials;
+    }
+
+    // If no user is found, return an empty string or a default value
+    return '';
+};
 
 
 const downloadCSV = () => {

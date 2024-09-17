@@ -1,5 +1,9 @@
 <template>
     <div class="card">
+        <!-- {{ currentUser }} -->
+        <!-- {{ props.user }} -->
+        <!-- {{ $page.props.auth.user.current_team.name }} -->
+        <!-- abc -->
         <div>
             <div class="m-4 my-4">
                 <i v-if="dates.length" class="pi pi-calendar"></i> {{ formatDates(dates) }}
@@ -201,6 +205,7 @@ let props = defineProps({
     filterSubs: Object,
     stateIds: Object,
     filterSubIds: Object,
+    currentUser: Object,
 });
 
 const selectedItems = ref([]);
@@ -370,7 +375,7 @@ const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
         if (salesOrder.created_on_odoo?.value) {
             const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
                 created_on_odoo: salesOrder.created_on_odoo.value,
-                // ''
+                odoo_created_by_id: props.currentUser.id,
             });
             toast.add({ severity: 'success', summary: `Moved #${salesOrder.sales_order_no} to Confirm Delivery Requirement`, detail: '', life: 3000 })
         }
@@ -385,6 +390,7 @@ const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
     try {
         const response = await axios.put(`/api/updateRequiredDeliveryInFilterSubs/${salesOrder.id}`, {
             required_delivery: salesOrder.required_delivery.value,
+            required_delivery_updated_by_id: props.currentUser.id,
         });
         toast.add({ severity: 'success', summary: 'Success', detail: 'Message Content', life: 3000 })
     } catch (error) {
