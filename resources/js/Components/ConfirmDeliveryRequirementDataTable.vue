@@ -1,7 +1,5 @@
-
 <template>
     <div class="card">
-        {{ selectedSalesOrderId }}
         <div>
             <div class="m-4 my-4">
                 <i v-if="dates.length" class="pi pi-calendar"></i> {{ formatDates(dates) }}
@@ -47,7 +45,7 @@
                     :value="category.state_id" />
                 <label :for="category.id" class="ml-2">{{
                     category.name
-                    }}</label>
+                }}</label>
             </div>
 
 
@@ -90,7 +88,7 @@
         <Paginator :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
             @page="handlePageChange">
             <template #start="slotProps">
-                {{ filterSubs.from }}-{{ filterSubs.to }} /
+                {{ filterSubs.from }}-{{ filterSubs.to - getCreatedOnOdoosNo(filterSubs.data) }} /
                 {{ filterSubs.total - getCreatedOnOdoosNo(filterSubs.data) }}
             </template>
         </Paginator>
@@ -156,8 +154,7 @@
                     </Select>
                 </template>
             </Column>
-            <Column field="" header="Require Delivery"
-                style="min-width: 10rem">
+            <Column field="" header="Require Delivery" style="min-width: 10rem">
                 <template #body="{ data }">
                     <Select v-model="data.required_delivery" :options="dropdownRequireDelivery" filter
                         optionLabel="name" placeholder="Select Confirmation" class="w-full md:w-14rem"
@@ -288,14 +285,14 @@ const categoryTypes = ref([{ "id": 1, "name": "Subscription", },
     //  { "id": 2, "name": "1st Stage Filter Only", },
 ]);
 
-const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter"},
-    {"id": 2, "name": "Independent 3 + 3 Due for Change"},
-    {"id": 3, "name": "Independent 3 + 3 Expires"},
-    {"id": 4, "name": "3 + 3 Stage Filter"},
-    {"id": 5, "name": "3 Stage Filter"},
-    {"id": 6, "name": "3 + 3 Stage Filter Expires"},
-    {"id": 7, "name": "3 Stage Filter Expires"},
-    {"id": 8, "name": "Final Date to Order Filters for Warranty Extension"},
+const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter" },
+{ "id": 2, "name": "Independent 3 + 3 Due for Change" },
+{ "id": 3, "name": "Independent 3 + 3 Expires" },
+{ "id": 4, "name": "3 + 3 Stage Filter" },
+{ "id": 5, "name": "3 Stage Filter" },
+{ "id": 6, "name": "3 + 3 Stage Filter Expires" },
+{ "id": 7, "name": "3 Stage Filter Expires" },
+{ "id": 8, "name": "Final Date to Order Filters for Warranty Extension" },
 ]);
 
 const dropdownRequireDelivery = ref([
@@ -437,16 +434,16 @@ const handleSelectClickOdooCreatedBy = (salesOrder) => {
 
 const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
     try {
+
         const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
             created_on_odoo: salesOrder.created_on_odoo.value,
+            // ''
         });
-        console.log('a')
-        console.log(salesOrder)
-        console.log('z')
-        console.log(response)
-
-        console.log('handle select change')
-        toast.add({ severity: 'success', summary: `Moved #${salesOrder.sales_order_no} for Confirm Delivery Requirement`, detail: '', life: 3000 })
+        if (salesOrder.created_on_odoo?.value) {
+            toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no}'s created on odoo to ${salesOrder.created_on_odoo.value}`, detail: '', life: 3000 })
+        } else {
+            toast.add({ severity: 'info', summary: `Moved #${salesOrder.sales_order_no} back to Subscription to Enter`, detail: '', life: 3000 })
+        }
     } catch (error) {
         console.error('Failed to update created_on_odoo:', error);
         toast.add({ severity: 'error', summary: 'Failed to update', detail: '', life: 3000 })
@@ -459,13 +456,14 @@ const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
         const response = await axios.put(`/api/updateRequiredDeliveryInFilterSubs/${salesOrder.id}`, {
             required_delivery: salesOrder.required_delivery.value,
         });
-        console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZ')
-        console.log(response)
-        console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-
-
-        console.log('handle select change')
-        toast.add({ severity: 'success', summary: 'Success', detail: 'Message Content', life: 3000 })
+      
+        if (salesOrder.required_delivery?.value) {
+            if(salesOrder.required_delivery?.value === 'Confirm'){
+                toast.add({ severity: 'success', summary: `Added #${salesOrder.sales_order_no} to Subscriptions to Deliver`, detail: '', life: 3000 })
+            }else{
+                toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no} required delivery to Denied`, detail: '', life: 3000 })
+            }
+        }
     } catch (error) {
         // Handle error
         console.error('Failed to update created_on_odoo:', error);
@@ -540,14 +538,16 @@ watch(selectedCategories, async (newCategory) => {
 
 const getFilteredData = (data) => {
     return data
-    // data.filter(item => item.created_on_odoo === null);
+        .filter(item => item.created_on_odoo !== null &&
+            item.created_on_odoo?.value !== null
+        );
 }
 
 const getCreatedOnOdoosNo = (data) => {
-    return 0
-    // data.filter(item => item.created_on_odoo !== null).length;
+    return data.filter(item => item.created_on_odoo === null
+        || item.created_on_odoo?.value === null
+    ).length;
 }
-
 // const capitalizeFirstLetter = (string) => {
 //     return string.charAt(0).toUpperCase() + string.slice(1);
 // }

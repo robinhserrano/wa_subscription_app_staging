@@ -1,4 +1,3 @@
-
 <template>
     <div class="card">
         <div>
@@ -22,8 +21,6 @@
                 <Column field="description" header="Description" style="min-width: 10rem"></Column>
                 <Column field="quantity" header="Quantity" style="min-width: 5rem"></Column>
             </DataTable>
-
-
             <div>
                 <p v-if="selectedSalesOrder.contact_address[0].parent">
                 <p class="mt-6 mb-2"> Other Address:</p>
@@ -37,7 +34,6 @@
                 <i class="pi pi-building"></i> {{ child.complete_address }}
                 </p>
             </div>
-
         </Drawer>
         <Drawer v-model:visible="visibleRight" header="Filters" position="right" class="!w-full md:!w-80 lg:!w-[30rem]">
             <p class="mb-2 text-xl font-bold">States</p>
@@ -46,50 +42,28 @@
                     :value="category.state_id" />
                 <label :for="category.id" class="ml-2">{{
                     category.name
-                    }}</label>
+                }}</label>
             </div>
-
-
             <p class="mt-4 mb-2 text-xl font-bold">Category</p>
             <div v-for="category of categoryTypes" :key="category.id" class="flex items-center mb-2">
                 <Checkbox v-model="selectedCategories" :inputId="category.name" name="category"
                     :value="category.name" />
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
-
-
-            
             <p class="mt-4 mb-2 text-xl font-bold">Activity Summary</p>
             <div v-for="category of activitySummaryTypes" :key="category.id" class="flex items-center mb-2">
                 <Checkbox v-model="selectedActivitySummary" :inputId="category.name" name="category"
                     :value="category.name" />
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
-
-            <!-- <p class="mb-2 text-xl font-bold">Activity Summary</p> -->
-
-
-            <!-- <div v-for="category of activitySummaries" :key="category.id" class="flex items-center mb-2">
-                <Checkbox v-model="selectedActivitySummary" :inputId="category.activity_summary"
-                    name="activitySummaries" :value="category.activity_summary" />
-                <label :for="category.id" class="ml-2">{{ category.activity_summary }}</label>
-            </div> -->
-
-            <!-- <div v-for="category in activitySummaries" :key="category.id" class="flex items-center mb-2">
-                <RadioButton v-model="selectedActivitySummary" :inputId="category.id" name="dynamic"
-                    :value="category.activity_summary" />
-                <label :for="category.id" class="ml-2">{{ category.activity_summary }}</label>
-            </div> -->
             <p class="mt-4 mb-2 text-xl font-bold">Date Range</p>
             <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
         </Drawer>
-
         <!-- <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button> -->
-
         <Paginator :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100,]"
             @page="handlePageChange">
             <template #start="slotProps">
-                {{ filterSubs.from }}-{{ filterSubs.to }} /
+                {{ filterSubs.from }}-{{ filterSubs.to - getCreatedOnOdoosNo(filterSubs.data) }} /
                 {{ filterSubs.total - getCreatedOnOdoosNo(filterSubs.data) }}
             </template>
         </Paginator>
@@ -98,23 +72,18 @@
             filterDisplay="menu">
             <template #header>
                 <div class="flex justify-between">
-
                     <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
                     <IconField>
                         <InputIcon>
                             <i class="pi pi-search" />
                         </InputIcon>
                         <div>
-
-
                             <Button @click="visibleRight = true" label="Filter" class="mr-4" />
-                            <!-- v-model="filters['global'].value"  -->
                             <InputText placeholder="Keyword Search" @input="handleSearch" />
                         </div>
                     </IconField>
                 </div>
             </template>
-
             <template #empty> No filterSubs found. </template>
             <template #loading> Loading filterSubs data. Please wait. </template>
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
@@ -122,9 +91,6 @@
                 <template #body="{ data }">
                     <span @click="handleCellClick(data)" class="cursor-pointer hover:underline">{{
                         data.sales_order_no }}
-
-                        <!-- {{ data.category }} -->
-
                     </span>
                     <font-awesome-icon v-if="data.category === 'Subscription'" icon="fa-filter-circle-dollar"
                         class="ml-2" />
@@ -137,7 +103,6 @@
                         @click="handleSelectClickOdooCreatedBy(data)" @change="handleSelectChangeOdooCreatedBy(data)">
                         <template #value="slotProps">
                             <div v-if="slotProps.value" class="flex align-items-center">
-
                                 <div v-if="data.created_on_odoo && data.created_on_odoo.value !== null">
                                     {{ data.created_on_odoo?.name || data.created_on_odoo }} </div>
                                 <div v-else>{{ slotProps.placeholder }}</div>
@@ -145,7 +110,6 @@
                             <span v-else>
                                 {{ slotProps.placeholder }}
                             </span>
-
                         </template>
                         <template #option="slotProps">
                             <div class="flex align-items-center">
@@ -179,10 +143,6 @@
                     </Select>
                 </template>
             </Column>
-            <!-- <Column v-if="route().current('confirmDeliveryRequirement')" field="customer_name" header="Customer Name"
-                style="min-width: 10rem" filterField="customer_name">
-
-            </Column> -->
             <Column field="customer_name" header="Customer Name" style="min-width: 10rem" filterField="customer_name">
             </Column>
             <Column field="address" header="Address" style="min-width: 10rem"></Column>
@@ -191,10 +151,6 @@
                 <template #body="{ data }">
                     {{ formatDate(data.due_date) }}
                 </template>
-                <!-- <template #filter="{ filterModel }">
-                    <DatePicker v-model="filterModel.value" dateFormat="yy/mm/dd" placeholder="yyyy/mm/dd" />
-                </template> -->
-
             </Column>
             <Column field="invoice_number" header="Invoice Number" style="min-width: 10rem"></Column>
             <Column field="invoice_date" header="Invoice Date" style="min-width: 10rem">
@@ -203,12 +159,9 @@
                 </template>
             </Column>
             <Column field="state_id" header="State" style="min-width: 10rem">
-
                 <template #body="{ data }">
-                    <!-- {{ formatDate(data.invoice_date) }} -->
                     {{ stateIds[data.state_id - 1]?.name }}
                 </template>
-
             </Column>
             <Column field="phone" header="Phone" style="min-width: 10rem"></Column>
             <Column field="email" header="Email" style="min-width: 10rem"></Column>
@@ -218,51 +171,39 @@
                 </template>
             </Column>
         </DataTable>
-        <!-- 
-        <nes-vue url="https://taiyuuki.github.io/nes-vue/Super Mario Bros (JU).nes" /> -->
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, useAttrs, computed  } from 'vue';
-import { CustomerService } from '@/service/CustomerService';
-import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
+import { ref, onMounted, watch, useAttrs } from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
-import MultiSelect from 'primevue/multiselect';
 import Tag from 'primevue/tag';
 import Select from 'primevue/select';
 import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
 import DatePicker from 'primevue/datepicker';
-import InputNumber from 'primevue/inputnumber';
-import ProgressBar from 'primevue/progressbar';
-import Slider from 'primevue/slider';
-import { NesVue } from 'nes-vue';
 import { router } from '@inertiajs/vue3';
 import Paginator from 'primevue/paginator';
 import debounce from 'lodash/debounce';
 import Drawer from 'primevue/drawer';
 import axios from 'axios';
-import { nextTick } from 'vue';
 import { useToast } from 'primevue/usetoast'
-import RadioButton from 'primevue/radiobutton';
 import * as XLSX from 'xlsx';
 import 'primeicons/primeicons.css'
+import { NesVue } from 'nes-vue';
 
 const attrs = useAttrs()
 let props = defineProps({
     filterSubs: Object,
     stateIds: Object,
-    // activitySummaries: Object,
     filterSubIds: Object,
 });
 
 const selectedItems = ref([]);
-const filters = ref();
 const loading = ref(true);
 const currentPage = ref(1);
 const totalRecord = ref(0);
@@ -273,29 +214,23 @@ const salesQuotations = ref();
 const dropdownOptions = ref([]);
 const toast = useToast()
 const stateIds = ref([])
-
 const selectedSalesOrderId = ref();
 const selectedSalesOrderLines = ref();
 const selectedCustomerName = ref();
 const selectedCustomerAddress = ref();
 const selectedCustomerContactAddress = ref([]);
-
-
-
-
-const selectedType = ref()
 const categoryTypes = ref([{ "id": 1, "name": "Subscription", },
     //  { "id": 2, "name": "1st Stage Filter Only", },
 ]);
 
-const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter"},
-    {"id": 2, "name": "Independent 3 + 3 Due for Change"},
-    {"id": 3, "name": "Independent 3 + 3 Expires"},
-    {"id": 4, "name": "3 + 3 Stage Filter"},
-    {"id": 5, "name": "3 Stage Filter"},
-    {"id": 6, "name": "3 + 3 Stage Filter Expires"},
-    {"id": 7, "name": "3 Stage Filter Expires"},
-    {"id": 8, "name": "Final Date to Order Filters for Warranty Extension"},
+const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter" },
+{ "id": 2, "name": "Independent 3 + 3 Due for Change" },
+{ "id": 3, "name": "Independent 3 + 3 Expires" },
+{ "id": 4, "name": "3 + 3 Stage Filter" },
+{ "id": 5, "name": "3 Stage Filter" },
+{ "id": 6, "name": "3 + 3 Stage Filter Expires" },
+{ "id": 7, "name": "3 Stage Filter Expires" },
+{ "id": 8, "name": "Final Date to Order Filters for Warranty Extension" },
 ]);
 
 const dropdownRequireDelivery = ref([
@@ -339,7 +274,7 @@ const fetchData = async () => {
     try {
         console.log('fetch data page')
         console.log(currentPage.value)
-        const response = await router.get('/dashboard', {
+        const response = router.get('/dashboard', {
             page: currentPage.value,
             search: search.value,
             dates: dates.value,
@@ -424,30 +359,21 @@ const handleCellClick = (salesOrder) => {
     selectedCustomerContactAddress.value = salesOrder.contact_address
 
     selectedSalesOrder.value = salesOrder;
-    // Handle the click event here
-    // console.log('Clicked sales order:', salesOrderNo);
-    // Perform any desired actions, such as navigation or data manipulation
 }
 
 const handleSelectClickOdooCreatedBy = (salesOrder) => {
     selectedSalesOrderId.value = salesOrder.sales_order_no
-    console.log('Select clicked', event);
-    // Your custom logic here
 }
 
 const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
     try {
-        const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
-            created_on_odoo: salesOrder.created_on_odoo.value,
-            // ''
-        });
-        console.log('a')
-        console.log(salesOrder)
-        console.log('z')
-        console.log(response)
-
-        console.log('handle select change')
-        toast.add({ severity: 'success', summary: `Moved #${salesOrder.sales_order_no} for Confirm Delivery Requirement`, detail: '', life: 3000 })
+        if (salesOrder.created_on_odoo?.value) {
+            const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
+                created_on_odoo: salesOrder.created_on_odoo.value,
+                // ''
+            });
+            toast.add({ severity: 'success', summary: `Moved #${salesOrder.sales_order_no} to Confirm Delivery Requirement`, detail: '', life: 3000 })
+        }
     } catch (error) {
         console.error('Failed to update created_on_odoo:', error);
         toast.add({ severity: 'error', summary: 'Failed to update', detail: '', life: 3000 })
@@ -460,18 +386,11 @@ const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
         const response = await axios.put(`/api/updateRequiredDeliveryInFilterSubs/${salesOrder.id}`, {
             required_delivery: salesOrder.required_delivery.value,
         });
-        console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZ')
-        console.log(response)
-        console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-
-
-        console.log('handle select change')
         toast.add({ severity: 'success', summary: 'Success', detail: 'Message Content', life: 3000 })
     } catch (error) {
-        // Handle error
+        r
         console.error('Failed to update created_on_odoo:', error);
         toast.add({ severity: 'error', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
-        // this.$toast.add({ severity: 'error', summary: 'Update Failed', detail: 'Failed to update Created on Odoo.' });
     }
 }
 
@@ -541,20 +460,17 @@ watch(selectedCategories, async (newCategory) => {
 
 const getFilteredData = (data) => {
     return data
-    // data.filter(item => item.created_on_odoo === null);
+        .filter(item => item.created_on_odoo === null ||
+            item.created_on_odoo?.value === null
+        );
 }
 
 const getCreatedOnOdoosNo = (data) => {
-    return 0
-    // data.filter(item => item.created_on_odoo !== null).length;
+    return data.filter(item => item.created_on_odoo !== null
+        || item.created_on_odoo?.value !== null
+    ).length;
 }
 
-// const capitalizeFirstLetter = (string) => {
-//     return string.charAt(0).toUpperCase() + string.slice(1);
-// }
-
-
-// const username = computed(() => props.auth?.user?.username || 'Guest');
 const downloadCSV = () => {
     // Define custom headers and corresponding columns
     const headers = {

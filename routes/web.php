@@ -31,8 +31,7 @@ Route::middleware([
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
         $dates = Request::input('dates', []);
-        $query = FilterSubs::query();
-        #->whereNull('created_on_odoo');
+        $query = FilterSubs::query()->whereNull('created_on_odoo');
         if (!empty($dates)) {
             $startDate = Carbon::parse($dates[0]);
             $endDate = isset($dates[1]) ? Carbon::parse($dates[1]) : null;
@@ -131,7 +130,7 @@ Route::middleware([
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
         $dates = Request::input('dates', []);
 
-        $query = FilterSubs::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');;
+        $query = FilterSubs::query()->whereNotNull('created_on_odoo')->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');;
 
         if (!empty($dates)) {
             $startDate = Carbon::parse($dates[0]);

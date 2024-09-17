@@ -56,7 +56,7 @@
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
 
-            
+
             <p class="mt-4 mb-2 text-xl font-bold">Activity Summary</p>
             <div v-for="category of activitySummaryTypes" :key="category.id" class="flex items-center mb-2">
                 <Checkbox v-model="selectedActivitySummary" :inputId="category.name" name="category"
@@ -64,7 +64,7 @@
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
 
-<!-- 
+            <!-- 
             <p class="mb-2 text-xl font-bold">Activity Summary</p>
 
 
@@ -88,7 +88,7 @@
         <Paginator :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
             @page="handlePageChange">
             <template #start="slotProps">
-                {{ filterSubs.from }}-{{ filterSubs.to }} /
+                {{ filterSubs.from }}-{{ filterSubs.to - getCreatedOnOdoosNo(filterSubs.data) }} /
                 {{ filterSubs.total - getCreatedOnOdoosNo(filterSubs.data) }}
             </template>
         </Paginator>
@@ -131,8 +131,8 @@
             </Column>
             <Column field="" header="Created on Odoo" style="min-width: 10rem">
                 <template #body="{ data }">
-                    <Select v-model="data.created_on_odoo" :options="dropdownOptions" filter optionLabel="name"
-                        placeholder="Select Sales Order #" class="w-full md:w-14rem"
+                    <Select :disabled="true" v-model="data.created_on_odoo" :options="dropdownOptions" filter
+                        optionLabel="name" placeholder="Select Sales Order #" class="w-full md:w-14rem"
                         @click="handleSelectClickOdooCreatedBy(data)" @change="handleSelectChangeOdooCreatedBy(data)">
                         <template #value="slotProps">
                             <div v-if="slotProps.value" class="flex align-items-center">
@@ -154,8 +154,7 @@
                     </Select>
                 </template>
             </Column>
-            <Column v-if="route().current('confirmDeliveryRequirement')" field="" header="Require Delivery"
-                style="min-width: 10rem">
+            <Column field="" header="Require Delivery" style="min-width: 10rem">
                 <template #body="{ data }">
                     <Select v-model="data.required_delivery" :options="dropdownRequireDelivery" filter
                         optionLabel="name" placeholder="Select Confirmation" class="w-full md:w-14rem"
@@ -286,14 +285,14 @@ const categoryTypes = ref([{ "id": 1, "name": "Subscription", },
     //  { "id": 2, "name": "1st Stage Filter Only", },
 ]);
 
-const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter"},
-    {"id": 2, "name": "Independent 3 + 3 Due for Change"},
-    {"id": 3, "name": "Independent 3 + 3 Expires"},
-    {"id": 4, "name": "3 + 3 Stage Filter"},
-    {"id": 5, "name": "3 Stage Filter"},
-    {"id": 6, "name": "3 + 3 Stage Filter Expires"},
-    {"id": 7, "name": "3 Stage Filter Expires"},
-    {"id": 8, "name": "Final Date to Order Filters for Warranty Extension"},
+const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter" },
+{ "id": 2, "name": "Independent 3 + 3 Due for Change" },
+{ "id": 3, "name": "Independent 3 + 3 Expires" },
+{ "id": 4, "name": "3 + 3 Stage Filter" },
+{ "id": 5, "name": "3 Stage Filter" },
+{ "id": 6, "name": "3 + 3 Stage Filter Expires" },
+{ "id": 7, "name": "3 Stage Filter Expires" },
+{ "id": 8, "name": "Final Date to Order Filters for Warranty Extension" },
 ]);
 
 const dropdownRequireDelivery = ref([
@@ -437,7 +436,7 @@ const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
     try {
         const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
             created_on_odoo: salesOrder.created_on_odoo.value,
-            
+
         });
         console.log('a')
         console.log(salesOrder)
@@ -458,13 +457,14 @@ const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
         const response = await axios.put(`/api/updateRequiredDeliveryInFilterSubs/${salesOrder.id}`, {
             required_delivery: salesOrder.required_delivery.value,
         });
-        console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZ')
-        console.log(response)
-        console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
 
 
-        console.log('handle select change')
-        toast.add({ severity: 'success', summary: 'Success', detail: 'Message Content', life: 3000 })
+        if (salesOrder.required_delivery?.value === 'Confirm') {
+            // toast.add({ severity: 'success', summary: `Added #${salesOrder.sales_order_no} to Subscriptions to Deliver`, detail: '', life: 3000 })
+        } else {
+            toast.add({ severity: 'info', summary: `Moved #${salesOrder.sales_order_no} back to Confirm Delivery Requirement`, detail: '', life: 3000 })
+        }
+
     } catch (error) {
         // Handle error
         console.error('Failed to update created_on_odoo:', error);
@@ -539,14 +539,15 @@ watch(selectedCategories, async (newCategory) => {
 
 const getFilteredData = (data) => {
     return data
-    // data.filter(item => item.created_on_odoo === null);
+        .filter(item => item.required_delivery === 'Confirm' ||
+            item.required_delivery?.value === 'Confirm'
+        );
 }
 
 const getCreatedOnOdoosNo = (data) => {
-    return 0
-    // data.filter(item => item.created_on_odoo !== null).length;
+    return data.filter(item => (item.required_delivery?.value === null || item.required_delivery?.value === 'Deny')
+    ).length;
 }
-
 // const capitalizeFirstLetter = (string) => {
 //     return string.charAt(0).toUpperCase() + string.slice(1);
 // }
@@ -591,7 +592,7 @@ const downloadCSV = () => {
         console.log('B')
         item.recordType = 'C'
         item.receiverCode = null
-        
+
 
 
         item.receiverAddress1 = compareAddresses(item['address'], item['contact_address'][0].complete_address)
