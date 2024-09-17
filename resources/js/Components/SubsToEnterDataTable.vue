@@ -42,7 +42,7 @@
                     :value="category.state_id" />
                 <label :for="category.id" class="ml-2">{{
                     category.name
-                }}</label>
+                    }}</label>
             </div>
             <p class="mt-4 mb-2 text-xl font-bold">Category</p>
             <div v-for="category of categoryTypes" :key="category.id" class="flex items-center mb-2">
@@ -466,8 +466,8 @@ const getFilteredData = (data) => {
 }
 
 const getCreatedOnOdoosNo = (data) => {
-    return data.filter(item => item.created_on_odoo !== null
-        || item.created_on_odoo?.value !== null
+    return data.filter(item => item.created_on_odoo !== null && item.created_on_odoo !== undefined
+
     ).length;
 }
 

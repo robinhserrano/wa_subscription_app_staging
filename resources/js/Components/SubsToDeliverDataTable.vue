@@ -545,7 +545,7 @@ const getFilteredData = (data) => {
 }
 
 const getCreatedOnOdoosNo = (data) => {
-    return data.filter(item => (item.required_delivery?.value === null || item.required_delivery?.value === 'Deny')
+    return data.filter(item => (item.created_on_odoo === undefined || item.required_delivery?.value === null || item.required_delivery?.value === 'Deny')
     ).length;
 }
 // const capitalizeFirstLetter = (string) => {

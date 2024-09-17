@@ -45,7 +45,7 @@
                     :value="category.state_id" />
                 <label :for="category.id" class="ml-2">{{
                     category.name
-                }}</label>
+                    }}</label>
             </div>
 
 
@@ -456,11 +456,11 @@ const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
         const response = await axios.put(`/api/updateRequiredDeliveryInFilterSubs/${salesOrder.id}`, {
             required_delivery: salesOrder.required_delivery.value,
         });
-      
+
         if (salesOrder.required_delivery?.value) {
-            if(salesOrder.required_delivery?.value === 'Confirm'){
+            if (salesOrder.required_delivery?.value === 'Confirm') {
                 toast.add({ severity: 'success', summary: `Added #${salesOrder.sales_order_no} to Subscriptions to Deliver`, detail: '', life: 3000 })
-            }else{
+            } else {
                 toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no} required delivery to Denied`, detail: '', life: 3000 })
             }
         }
@@ -544,8 +544,9 @@ const getFilteredData = (data) => {
 }
 
 const getCreatedOnOdoosNo = (data) => {
-    return data.filter(item => item.created_on_odoo === null
-        || item.created_on_odoo?.value === null
+    return data.filter(
+        item => item.created_on_odoo === null
+            || item.created_on_odoo?.value === null || item.created_on_odoo === undefined
     ).length;
 }
 // const capitalizeFirstLetter = (string) => {
