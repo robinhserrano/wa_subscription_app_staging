@@ -433,8 +433,6 @@ watch(selectedSalesOrderId, async (newSalesOrderId) => {
 
             }));
 
-
-
             dropdownOptions.value.push({ name: '- Unselect -', value: null });
         } catch (error) {
             console.error('Error fetching dropdown options:', error);
