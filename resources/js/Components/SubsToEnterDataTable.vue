@@ -404,22 +404,37 @@ watch(selectedSalesOrderId, async (newSalesOrderId) => {
     if (newSalesOrderId) {
         try {
             // dropdownOptions.value = []
-            const response = await axios.get('/api/findSalesOrdersBySalesOrderNo', {
+            // const response = await axios.get('/api/findSalesOrdersBySalesOrderNo', {
+            //     params: {
+            //         'sales_order_no': newSalesOrderId
+            //     }
+            // });
+            // console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZ')
+            // console.log(response)
+            // console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+            // dropdownOptions.value = response.data.map(item => ({
+            //     name: item.sales_order_no,
+            //     value: item.sales_order_no,
+
+            // })
+
+
+            // );
+
+            const response2 = await axios.get('/api/findFilterSubsBySalesOrderNo', {
                 params: {
                     'sales_order_no': newSalesOrderId
                 }
             });
-            console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZ')
-            console.log(response)
-            console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-            dropdownOptions.value = response.data.map(item => ({
-                name: item.sales_order_no,
-                value: item.sales_order_no,
 
-            })
+            dropdownOptions.value = response2.data.map(item => ({
+                name: item,
+                value: item,
+
+            }));
 
 
-            );
+
             dropdownOptions.value.push({ name: '- Unselect -', value: null });
         } catch (error) {
             console.error('Error fetching dropdown options:', error);

@@ -9,14 +9,17 @@
         <Toast />
 
         <Drawer v-model:visible="visible" :header="selectedSalesOrderId" class="!w-full md:!w-80 lg:!w-[30rem]">
+            <!-- <p>
+                {{  selectedSalesOrder}}
+            </p> -->
             <p>
-                <i class="pi pi-user"></i> {{ selectedCustomerName }}
+                <i class="pi pi-user"></i> {{ selectedSalesOrder.customer_name }}
             </p>
             <p>
-                <i class="pi pi-map-marker mt-2"></i> {{ selectedCustomerAddress }}
+                <i class="pi pi-map-marker mt-2"></i> {{ selectedSalesOrder.address }}
             </p>
             <p class="mt-6"> Order Lines:</p>
-            <DataTable :value="selectedSalesOrderLines" dataKey="id" showGridlines class="mt-2">
+            <DataTable :value="selectedSalesOrder.order_line" dataKey="id" showGridlines class="mt-2">
                 <Column field="product" header="Product" style="min-width: 10rem"></Column>
                 <Column field="description" header="Description" style="min-width: 10rem"></Column>
                 <Column field="quantity" header="Quantity" style="min-width: 5rem"></Column>
@@ -45,7 +48,7 @@
                     :value="category.state_id" />
                 <label :for="category.id" class="ml-2">{{
                     category.name
-                    }}</label>
+                }}</label>
             </div>
 
 
@@ -195,38 +198,127 @@
 
             </Column> -->
             <Column field="customer_name" header="Customer Name" style="min-width: 10rem" filterField="customer_name">
+                <template #body="{ data }">
+                    <p v-if="data.new_sales_order.customer_name">
+                        {{ data.new_sales_order.customer_name }}
+                    </p>
+                    <p v-else-if="data.customer_name">
+                        {{ data.customer_name }}
+                    </p>
+                </template>
             </Column>
-            <Column field="address" header="Address" style="min-width: 10rem"></Column>
-            <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem"></Column>
+            <Column field="address" header="Address" style="min-width: 10rem">
+                <template #body="{ data }">
+                    <p v-if="data.new_sales_order.address">
+                        {{ data.new_sales_order.address }}
+                    </p>
+                    <p v-else-if="data.address">
+                        {{ data.address }}
+                    </p>
+                </template>
+            </Column>
+            <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem">
+                <template #body="{ data }">
+                    <p v-if="data.new_sales_order.activity_summary">
+                        {{ data.new_sales_order.activity_summary }}
+                    </p>
+                    <p v-else-if="data.activity_summary">
+                        {{ data.activity_summary }}
+                    </p>
+                </template>
+            </Column>
             <Column field="due_date" header="Due Date" style="min-width: 10rem">
                 <template #body="{ data }">
-                    {{ formatDate(data.due_date) }}
+                    <!-- {{ formatDate(data.due_date) }} -->
+
+                    <p v-if="data.new_sales_order.due_date">
+                        {{ formatDate(data.new_sales_order.due_date) }}
+                        <!-- {{ data.new_sales_order.due_date }} -->
+                    </p>
+                    <p v-else-if="data.due_date">
+                        {{ formatDate(data.due_date) }}
+                        <!-- {{ data.due_date }} -->
+                    </p>
                 </template>
-                <!-- <template #filter="{ filterModel }">
-                    <DatePicker v-model="filterModel.value" dateFormat="yy/mm/dd" placeholder="yyyy/mm/dd" />
-                </template> -->
+
 
             </Column>
-            <Column field="invoice_number" header="Invoice Number" style="min-width: 10rem"></Column>
+            <Column field="invoice_number" header="Invoice Number" style="min-width: 10rem">
+
+                <template #body="{ data }">
+                    <p v-if="data.new_sales_order.invoice_number">
+                        {{ data.new_sales_order.invoice_number }}
+                    </p>
+                    <p v-else-if="data.invoice_number">
+                        {{ data.invoice_number }}
+                    </p>
+                </template>
+            </Column>
             <Column field="invoice_date" header="Invoice Date" style="min-width: 10rem">
                 <template #body="{ data }">
-                    {{ formatDate(data.invoice_date) }}
+                    <!-- {{ formatDate(data.invoice_date) }} -->
+
+                    <p v-if="data.new_sales_order.invoice_date">
+                        {{ formatDate(data.new_sales_order.invoice_date) }}
+                        <!-- {{ data.new_sales_order.due_date }} -->
+                    </p>
+                    <p v-else-if="data.invoice_date">
+                        {{ formatDate(data.invoice_date) }}
+                        <!-- {{ data.due_date }} -->
+                    </p>
                 </template>
             </Column>
             <Column field="state_id" header="State" style="min-width: 10rem">
 
                 <template #body="{ data }">
                     <!-- {{ formatDate(data.invoice_date) }} -->
-                    {{ stateIds[data.state_id - 1]?.name }}
+
+
+                    <p v-if="data.new_sales_order.state_id">
+                        {{ stateIds[data.new_sales_order.state_id - 1]?.name }}
+                    </p>
+                    <p v-else-if="data.state_id">
+                        {{ stateIds[data.state_id - 1]?.name }}
+                        <!-- {{ data.due_date }} -->
+                    </p>
                 </template>
 
             </Column>
-            <Column field="phone" header="Phone" style="min-width: 10rem"></Column>
-            <Column field="email" header="Email" style="min-width: 10rem"></Column>
-            <Column field="payment_status" header="Payment Status" style="min-width: 10rem">
+            <Column field="phone" header="Phone" style="min-width: 10rem">
                 <template #body="{ data }">
-                    <Tag v-if="data.payment_status === 'paid'" severity="success" value="Paid"></Tag>
+                    <p v-if="data.new_sales_order.phone">
+                        {{ data.new_sales_order.phone }}
+                    </p>
+                    <p v-else-if="data.phone">
+                        {{ data.phone }}
+                    </p>
                 </template>
+
+            </Column>
+            <Column field="email" header="Email" style="min-width: 10rem">
+                <template #body="{ data }">
+                    <p v-if="data.new_sales_order.email">
+                        {{ data.new_sales_order.email }}
+                    </p>
+                    <p v-else-if="data.email">
+                        {{ data.email }}
+                    </p>
+                </template>
+
+            </Column>
+            <Column field="payment_status" header="Payment Status" style="min-width: 10rem">
+                <!-- <template #body="{ data }">
+                    <Tag v-if="data.payment_status === 'paid'" severity="success" value="Paid"></Tag>
+                </template> -->
+                <template #body="{ data }">
+                    <p v-if="data.new_sales_order.payment_status">
+                        {{ data.new_sales_order.payment_status }}
+                    </p>
+                    <p v-else-if="data.payment_status">
+                        {{ data.payment_status }}
+                    </p>
+                </template>
+
             </Column>
         </DataTable>
         <!-- 
@@ -287,10 +379,6 @@ const toast = useToast()
 const stateIds = ref([])
 
 const selectedSalesOrderId = ref();
-const selectedSalesOrderLines = ref();
-const selectedCustomerName = ref();
-const selectedCustomerAddress = ref();
-const selectedCustomerContactAddress = ref([]);
 
 
 
@@ -430,10 +518,10 @@ const handleCellClick = (salesOrder) => {
 
     visible.value = true
     selectedSalesOrderId.value = salesOrder.sales_order_no
-    selectedSalesOrderLines.value = salesOrder.order_line
-    selectedCustomerName.value = salesOrder.customer_name
-    selectedCustomerAddress.value = salesOrder.address
-    selectedCustomerContactAddress.value = salesOrder.contact_address
+    // selectedSalesOrderLines.value = salesOrder.order_line
+    // selectedCustomerName.value = salesOrder.customer_name
+    // selectedCustomerAddress.value = salesOrder.address
+    // selectedCustomerContactAddress.value = salesOrder.contact_address
 
     selectedSalesOrder.value = salesOrder;
     // Handle the click event here
@@ -456,6 +544,7 @@ const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
         });
         if (salesOrder.created_on_odoo?.value) {
             toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no}'s created on odoo to ${salesOrder.created_on_odoo.value}`, detail: '', life: 3000 })
+            fetchData()
         } else {
             toast.add({ severity: 'info', summary: `Moved #${salesOrder.sales_order_no} back to Subscription to Enter`, detail: '', life: 3000 })
         }
@@ -492,20 +581,41 @@ watch(selectedSalesOrderId, async (newSalesOrderId) => {
     if (newSalesOrderId) {
         try {
             // dropdownOptions.value = []
-            const response = await axios.get('/api/findSalesOrdersBySalesOrderNo', {
+            // const response = await axios.get('/api/findSalesOrdersBySalesOrderNo', {
+            //     params: {
+            //         'sales_order_no': newSalesOrderId
+            //     }
+            // });
+
+
+            // console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZ')
+            // console.log(response)
+            // console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+
+
+
+            // console.log('TTTTTTTTTTTTTTTTTTTT')
+            // console.log(response2)
+            // console.log('TTTTTTTTTTTTTTTT')
+
+
+            // dropdownOptions.value = response.data.map(item => ({
+            //     name: item.sales_order_no,
+            //     value: item.sales_order_no,
+
+            // })
+            const response2 = await axios.get('/api/findFilterSubsBySalesOrderNo', {
                 params: {
                     'sales_order_no': newSalesOrderId
                 }
             });
-            console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZ')
-            console.log(response)
-            console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-            dropdownOptions.value = response.data.map(item => ({
-                name: item.sales_order_no,
-                value: item.sales_order_no,
+
+
+            dropdownOptions.value = response2.data.map(item => ({
+                name: item,
+                value: item,
 
             })
-
 
             );
             dropdownOptions.value.push({ name: '- Unselect -', value: null });

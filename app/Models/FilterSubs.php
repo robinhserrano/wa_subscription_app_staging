@@ -20,4 +20,9 @@ class FilterSubs extends Model
     {
         return $this->hasMany(Contact::class, 'name', 'customer_name')->with('children', 'parent');
     }
+
+    public function newSalesOrder()
+    {
+        return $this->hasOne(FilterSubs::class, 'sales_order_no', 'created_on_odoo')->with('contactAddress');
+    }
 }

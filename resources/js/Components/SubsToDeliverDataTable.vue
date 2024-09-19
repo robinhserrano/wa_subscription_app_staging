@@ -45,7 +45,7 @@
                     :value="category.state_id" />
                 <label :for="category.id" class="ml-2">{{
                     category.name
-                    }}</label>
+                }}</label>
             </div>
 
 
@@ -113,7 +113,7 @@
                         class="ml-2" />
                 </template>
             </Column>
-            <Column field="" header="Created on Odoo" style="min-width: 10rem">
+            <!-- <Column field="" header="Created on Odoo" style="min-width: 10rem">
                 <template #body="{ data }">
                     <Select :disabled="true" v-model="data.created_on_odoo" :options="dropdownOptions" filter
                         optionLabel="name" placeholder="Select Sales Order #" class="w-full md:w-14rem"
@@ -167,7 +167,7 @@
                             style="background-color: #dee9fc; color: #1a2551" />
                     </div>
                 </template>
-            </Column>
+            </Column> -->
             <!-- <Column v-if="route().current('confirmDeliveryRequirement')" field="customer_name" header="Customer Name"
                 style="min-width: 10rem" filterField="customer_name">
 
@@ -535,9 +535,9 @@ watch(selectedCategories, async (newCategory) => {
 
 const getFilteredData = (data) => {
     return data
-        .filter(item => item.required_delivery === 'Confirm' ||
-            item.required_delivery?.value === 'Confirm'
-        );
+    // .filter(item => item.required_delivery === 'Confirm' ||
+    //     item.required_delivery?.value === 'Confirm'
+    // );
 }
 
 const getCreatedOnOdoosNo = (data) => {
@@ -568,11 +568,11 @@ const downloadCSV = () => {
         'Record Type': 'recordType',//A
         'Receiver Code': 'receiverCode',//B
         'Receiver Name': 'customer_name', //C
-        'Receiver Address 1': 'receiverAddress1', //D
-        'Receiver Address 2': 'receiverAddress2', //E
+        'Receiver Address 1': 'street', //D
+        'Receiver Address 2': 'street2', //E
         'Receiver Address 3': 'receiverAddress3',//F
-        'Receiver Suburb': 'receiverSuburb',   //G
-        'Receiver Postcode': 'receiverPostcode',  //H
+        'Receiver Suburb': 'city',   //G
+        'Receiver Postcode': 'zip',  //H
         'Receiver Contact': 'receiverContact',//I
         'Receiver Phone': 'phone', //J
         'Email': 'email', //K
@@ -594,20 +594,22 @@ const downloadCSV = () => {
 
     // Map JSON data to include only selected columns with custom headers
     const mappedData = selectedItems.value.map(item => {
-        console.log('A')
-        console.log(item['address'])
-        console.log(item['contact_address'].complete_address)
-        console.log('B')
+        // console.log('A')
+        // console.log(item['address'])
+        // console.log(item['contact_address'].complete_address)
+        console.log(item)
+        console.log(item['contact_address'])
         item.recordType = 'C'
         item.receiverCode = null
 
 
 
-        item.receiverAddress1 = compareAddresses(item['address'], item['contact_address'][0].complete_address)
-        item.receiverAddress2 = null
+        item.street = item['contact_address'][0].street  ///compareAddresses(item['address'], item['contact_address'][0].complete_address)
+        item.street2 = item['contact_address'][0].street2
         item.receiverAddress3 = null
-        item.receiverSuburb = null
-        item.receiverPostcode = null
+        item.city = item['contact_address'][0].city
+        item.zip = item['contact_address'][0].zip
+        item.receiverContact = item.customer_name
         item.reference2 = null
         item.specialInstructions = null
         item.serviceCode = 'TB1'

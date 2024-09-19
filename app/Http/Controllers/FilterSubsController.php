@@ -175,4 +175,91 @@ class FilterSubsController extends Controller
             // return response()->json(['error' => 'Failed to update CreatedOnOdoo in Sales Order:'], 404);
         }
     }
+
+    public function findFilterSubsBySalesOrderNo(Request $request)
+    {
+        $request->validate([
+            'sales_order_no' => 'required|string',
+        ]);
+
+        $salesOrderNo = $request->input('sales_order_no');
+
+        $filterSub = FilterSubs::with('contactAddress')->where('sales_order_no', $salesOrderNo)->first();
+
+        if ($filterSub) {
+
+            $names = [];
+
+            $names[] = $filterSub->customer_name;
+
+
+            // Check if contactAddress exists and extract the parent name
+            // if ($filterSub->contactAddress) {
+            //     // Get the parent name
+            //     if (!empty($filterSub->contactAddress->name)) {
+            //         $parentName = $filterSub->contactAddress->name;
+            //         $names[] = $parentName;
+            //     }
+
+            //     // Iterate through children and extract their names
+            //     foreach ($filterSub->contactAddress->children as $child) {
+            //         if (!empty($child->name)) {
+            //             $names[] = $child->name;
+            //         }
+            //     }
+            // }
+            if ($filterSub->contactAddress && $filterSub->contactAddress->isNotEmpty()) {
+                // Get the first contact address
+                $contactAddress = $filterSub->contactAddress->first();
+
+                // // Get the parent name
+                // if (!empty($contactAddress->name)) {
+                //     $parentName = $contactAddress->name;
+                //     $names[] = $parentName;
+                // }
+                if ($contactAddress->parent) {
+                    // Assuming parent is a single object, extract its name if it exists
+                    if (!empty($contactAddress->parent->name)) {
+                        $names[] = $contactAddress->parent->name;
+                    }
+                }
+
+                if ($contactAddress->children && $contactAddress->children->isNotEmpty()) {
+                    foreach ($contactAddress->children as $child) {
+                        if (!empty($child->name)) {
+                            $names[] = $child->name;
+                        }
+                    }
+                }
+            }
+
+            // Extract addresses from the found sales orders
+            // $address = $filterSub->customer_name;
+
+            // // Find all sales orders with the same address
+            // $salesOrdersWithSameAddress = FilterSubs::where('address', $address)
+            //     ->where('sales_order_no', '!=', $salesOrderNo)
+            //     ->get();
+
+
+
+            $filteredFilterSub = FilterSubs::query()->whereIn('customer_name', $names)->where('sales_order_no', '!=', $salesOrderNo)
+                ->get()->pluck('sales_order_no');
+
+            return response()->json(
+                $filteredFilterSub
+                //     [
+                //     'message' => 'Sales orders found',
+                //     'data' => $salesOrdersWithSameAddress
+                // ]
+                ,
+                200
+            ); // OK
+        } else {
+            // Return an error message if no sales orders are found
+            return response()->json([
+                'message' => 'No sales orders found for the given sales order number'
+            ], 404); // Not Found
+        }
+    }
 }

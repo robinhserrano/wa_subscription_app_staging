@@ -59,3 +59,5 @@ Route::match(['put', 'patch'], '/updateRequiredDeliveryInFilterSubs/{id}', [Filt
 Route::post('/bulkContactsStore', [ContactController::class, 'bulkContactsStore']);
 
 Route::post('/bulkActivitySummaryStore', [ActivitySummaryController::class, 'bulkActivitySummaryStore']);
+
+Route::get('/findFilterSubsBySalesOrderNo', [FilterSubsController::class, 'findFilterSubsBySalesOrderNo']);

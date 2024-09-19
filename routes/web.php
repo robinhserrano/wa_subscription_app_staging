@@ -109,15 +109,13 @@ Route::middleware([
             $query->whereIn('state_id', $stateId);
         }
 
-
-
         if ($search = Request::input('search')) {
             $query->where('customer_name', 'like', "%{$search}%")->orWhere('sales_order_no', 'like', "%{$search}%");
         }
         $query->orderBy($sortBy, $sortOrder);
         return Inertia::render('ConfirmDeliveryRequirement', [
             'filterSubIds' => $query->pluck('id'),
-            'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
+            'filterSubs' => $query->with('orderLine', 'contactAddress', 'newSalesOrder')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
             'stateIds' => StateId::all()->sortByDesc('state_id'),
             'users' => User::all(),
         ]);
@@ -132,7 +130,13 @@ Route::middleware([
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
         $dates = Request::input('dates', []);
 
-        $query = FilterSubs::query()->whereNotNull('created_on_odoo')->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');;
+
+        $initialQuery = FilterSubs::all()->whereNotNull('created_on_odoo')->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
+
+        $createdOnOdooIds = $initialQuery->pluck('created_on_odoo');
+        
+        $query = FilterSubs::query()
+            ->whereIn('sales_order_no', $createdOnOdooIds);
 
         if (!empty($dates)) {
             $startDate = Carbon::parse($dates[0]);
@@ -170,6 +174,10 @@ Route::middleware([
         $query->orderBy($sortBy, $sortOrder);
 
         return Inertia::render('SubscriptionsToDeliver', [
+            
+         'allss' => $query, 
+            'inital' => $createdOnOdooIds, 
+            // 'initQuery'=> $initialQuery, 
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
             'stateIds' => StateId::all()->sortByDesc('state_id'),

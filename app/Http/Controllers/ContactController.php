@@ -15,7 +15,11 @@ class ContactController extends Controller
             'parent_contact_id',
             'name',
             'complete_address',
-            'parent_customer_name'
+            'parent_customer_name',
+            'street',
+            'street2',
+            'zip',
+            'city'
         ];
 
         $contactList = $request->all();
