@@ -18,7 +18,7 @@ import { faCoffee, faFilterCircleDollar, faUser } from '@fortawesome/free-solid-
 // Add the icons to the library
 library.add(faFilterCircleDollar, faUser); // Add your icons here
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'WA Filter Sub - Ops';
 
 createInertiaApp({
 	title: (title) => `${title} - ${appName}`,
