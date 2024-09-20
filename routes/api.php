@@ -34,10 +34,6 @@ Route::post('/sanctum/token', function (Request $request) {
     return $user->createToken($request->password)->plainTextToken;
 });
 
-Route::get('/haha', function (Request $request) {
-    return 'haha';
-});
-
 Route::middleware('auth:sanctum')->resource('/filterSubs', FilterSubsController::class, [
     'except' => ['create', 'edit']
 ])->middleware('auth:sanctum');
@@ -61,3 +57,7 @@ Route::post('/bulkContactsStore', [ContactController::class, 'bulkContactsStore'
 Route::post('/bulkActivitySummaryStore', [ActivitySummaryController::class, 'bulkActivitySummaryStore']);
 
 Route::get('/findFilterSubsBySalesOrderNo', [FilterSubsController::class, 'findFilterSubsBySalesOrderNo']);
+
+Route::post('/bulkConfirmFilterSubs', [FilterSubsController::class, 'bulkConfirmFilterSubs']);
+
+Route::post('/bulkDenyFilterSubs', [FilterSubsController::class, 'bulkDenyFilterSubs']);

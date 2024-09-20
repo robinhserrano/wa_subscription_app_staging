@@ -192,31 +192,9 @@ class FilterSubsController extends Controller
 
             $names[] = $filterSub->customer_name;
 
-
-            // Check if contactAddress exists and extract the parent name
-            // if ($filterSub->contactAddress) {
-            //     // Get the parent name
-            //     if (!empty($filterSub->contactAddress->name)) {
-            //         $parentName = $filterSub->contactAddress->name;
-            //         $names[] = $parentName;
-            //     }
-
-            //     // Iterate through children and extract their names
-            //     foreach ($filterSub->contactAddress->children as $child) {
-            //         if (!empty($child->name)) {
-            //             $names[] = $child->name;
-            //         }
-            //     }
-            // }
             if ($filterSub->contactAddress && $filterSub->contactAddress->isNotEmpty()) {
                 // Get the first contact address
                 $contactAddress = $filterSub->contactAddress->first();
-
-                // // Get the parent name
-                // if (!empty($contactAddress->name)) {
-                //     $parentName = $contactAddress->name;
-                //     $names[] = $parentName;
-                // }
                 if ($contactAddress->parent) {
                     // Assuming parent is a single object, extract its name if it exists
                     if (!empty($contactAddress->parent->name)) {
@@ -233,26 +211,11 @@ class FilterSubsController extends Controller
                 }
             }
 
-            // Extract addresses from the found sales orders
-            // $address = $filterSub->customer_name;
-
-            // // Find all sales orders with the same address
-            // $salesOrdersWithSameAddress = FilterSubs::where('address', $address)
-            //     ->where('sales_order_no', '!=', $salesOrderNo)
-            //     ->get();
-
-
-
             $filteredFilterSub = FilterSubs::query()->whereIn('customer_name', $names)->where('sales_order_no', '!=', $salesOrderNo)
                 ->get()->pluck('sales_order_no');
 
             return response()->json(
-                $filteredFilterSub
-                //     [
-                //     'message' => 'Sales orders found',
-                //     'data' => $salesOrdersWithSameAddress
-                // ]
-                ,
+                $filteredFilterSub,
                 200
             ); // OK
         } else {
@@ -261,5 +224,39 @@ class FilterSubsController extends Controller
                 'message' => 'No sales orders found for the given sales order number'
             ], 404); // Not Found
         }
+    }
+
+    public function bulkConfirmFilterSubs(Request $request)
+    {
+        $data = json_decode($request->getContent(), true); // Assuming JSON data
+        $updatedFilterSubs = 0;
+
+        foreach ($data['filterSubIds'] as $subId) {
+            $filterSub = FilterSubs::findOrFail($subId);
+            $filterSub->required_delivery = 'Confirm';
+            $filterSub->required_delivery_updated_by_id = $data['required_delivery_updated_by_id'];
+            $filterSub->save();
+            $updatedFilterSubs++; // Count updated entries
+        }
+
+        $message = "Sales orders updated successfully. Updated: $updatedFilterSubs";
+        return response()->json(compact('message'), 200); // Created
+    }
+
+    public function bulkDenyFilterSubs(Request $request)
+    {
+        $data = json_decode($request->getContent(), true); // Assuming JSON data
+        $updatedFilterSubs = 0;
+
+        foreach ($data['filterSubIds'] as $subId) {
+            $filterSub = FilterSubs::findOrFail($subId);
+            $filterSub->required_delivery = 'Deny';
+            $filterSub->required_delivery_updated_by_id = $data['required_delivery_updated_by_id'];
+            $filterSub->save();
+            $updatedFilterSubs++; // Count updated entries
+        }
+
+        $message = "Sales orders updated successfully. Updated: $updatedFilterSubs";
+        return response()->json(compact('message'), 200); // Created
     }
 }

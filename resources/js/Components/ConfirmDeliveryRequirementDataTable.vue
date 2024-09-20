@@ -1,5 +1,6 @@
 <template>
     <div class="card">
+        <!-- {{ selectedItems }} -->
         <div>
             <div class="m-4 my-4">
                 <i v-if="dates.length" class="pi pi-calendar"></i> {{ formatDates(dates) }}
@@ -14,7 +15,7 @@
             </p> -->
             <p>
                 <i class="pi pi-user"></i> {{ selectedSalesOrder.customer_name }}
-            </p>
+            </p>filtersubs.wateranalytics.com.au
             <p>
                 <i class="pi pi-map-marker mt-2"></i> {{ selectedSalesOrder.address }}
             </p>
@@ -85,11 +86,16 @@
             <p class="mt-4 mb-2 text-xl font-bold">Date Range</p>
             <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
         </Drawer>
+        <!-- 
+        <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button> -->
+        <Button v-if="selectedItems.length" :label="`Confirm All (${selectedItems.length})`" @click="confirmAll"
+            icon="pi pi-verified" class="ml-4"></Button>
 
-        <!-- <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button> -->
+        <Button v-if="selectedItems.length" :label="`Deny All (${selectedItems.length})`" @click="denyAll"
+            icon="pi pi-times-circle" class="ml-4"></Button>
 
-        <Paginator :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
-            @page="handlePageChange">
+        <Paginator :rows="selectedRowCount" :totalRecords="totalRecord"
+            :rowsPerPageOptions="[10, 25, 50, 100, totalRecord].sort((a, b) => a - b)" @page="handlePageChange">
             <template #start="slotProps">
                 {{ filterSubs.from }}-{{ filterSubs.to - getCreatedOnOdoosNo(filterSubs.data) }} /
                 {{ filterSubs.total - getCreatedOnOdoosNo(filterSubs.data) }}
@@ -107,8 +113,6 @@
                             <i class="pi pi-search" />
                         </InputIcon>
                         <div>
-
-
                             <Button @click="visibleRight = true" label="Filter" class="mr-4" />
                             <!-- v-model="filters['global'].value"  -->
                             <InputText placeholder="Keyword Search" @input="handleSearch" />
@@ -411,6 +415,8 @@ const selectedSalesOrder = ref();
 const selectedStateIds = ref([])
 const selectedActivitySummary = ref([])
 const selectedCategories = ref([])
+const selectedRowCount = ref(100)
+
 
 
 onMounted(() => {
@@ -421,6 +427,7 @@ onMounted(() => {
 });
 
 const handlePageChange = (event) => {
+    selectedRowCount.value = event.rows
     currentPage.value = event.page + 1 // Adjusting because page index is 0-based
     console.log('page change')
     console.log(currentPage.value)
@@ -446,6 +453,7 @@ const fetchData = async () => {
             stateId: selectedStateIds.value,
             activitySummary: selectedActivitySummary.value,
             categories: selectedCategories.value,
+            perPage: selectedRowCount.value,
         }, {
             preserveState: true,
             replace: false,
@@ -474,6 +482,7 @@ const debouncedFetchData = debounce(async () => {
             stateId: selectedStateIds.value,
             activitySummary: selectedActivitySummary.value,
             categories: selectedCategories.value,
+            perPage: selectedRowCount.value,
         }, {
             preserveState: true,
             replace: false,
@@ -745,8 +754,43 @@ const downloadCSV = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+};
 
+const confirmAll = async () => {
+    var selectedItemIds = selectedItems.value.map(e => e.id);
+    console.log(selectedItemIds)
 
+    const data = JSON.stringify({
+        filterSubIds: selectedItemIds,
+        required_delivery_updated_by_id: props.currentUser.id
+    });
+
+    const response = await axios.post('/api/bulkConfirmFilterSubs', data, {
+        headers: { 'Content-Type': 'application/json' }
+    });
+    toast.add({ severity: 'success', summary: `Successfully confirmed ${selectedItemIds.length} filter subs`, detail: '', life: 3000 })
+    fetchData()
+
+    selectedItems.value = []
+};
+
+const denyAll = async () => {
+    var selectedItemIds = selectedItems.value.map(e => e.id);
+    console.log(selectedItemIds)
+
+    const data = JSON.stringify({
+        filterSubIds: selectedItemIds,
+        required_delivery_updated_by_id: props.currentUser.id
+    });
+
+    const response = await axios.post('/api/bulkDenyFilterSubs', data, {
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    toast.add({ severity: 'success', summary: `Successfully denied ${selectedItemIds.length} filter subs`, detail: '', life: 3000 })
+    fetchData()
+
+    selectedItems.value = []
 };
 
 </script>

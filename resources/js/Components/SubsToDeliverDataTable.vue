@@ -45,7 +45,7 @@
                     :value="category.state_id" />
                 <label :for="category.id" class="ml-2">{{
                     category.name
-                }}</label>
+                    }}</label>
             </div>
 
 
@@ -69,8 +69,8 @@
 
         <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button>
 
-        <Paginator :rows="100" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
-            @page="handlePageChange">
+        <Paginator :rows="selectedRowCount" :totalRecords="totalRecord"
+            :rowsPerPageOptions="[10, 25, 50, 100, totalRecord].sort((a, b) => a - b)" @page="handlePageChange">
             <template #start="slotProps">
                 {{ filterSubs.from }}-{{ filterSubs.to - getCreatedOnOdoosNo(filterSubs.data) }} /
                 {{ filterSubs.total - getCreatedOnOdoosNo(filterSubs.data) }}
@@ -302,6 +302,7 @@ const selectedSalesOrder = ref();
 const selectedStateIds = ref([])
 const selectedActivitySummary = ref([])
 const selectedCategories = ref([])
+const selectedRowCount = ref(100)
 
 
 onMounted(() => {
@@ -312,6 +313,7 @@ onMounted(() => {
 });
 
 const handlePageChange = (event) => {
+    selectedRowCount.value = event.rows
     currentPage.value = event.page + 1 // Adjusting because page index is 0-based
     console.log('page change')
     console.log(currentPage.value)
@@ -337,6 +339,7 @@ const fetchData = async () => {
             stateId: selectedStateIds.value,
             activitySummary: selectedActivitySummary.value,
             categories: selectedCategories.value,
+            perPage: selectedRowCount.value,
         }, {
             preserveState: true,
             replace: false,
@@ -365,6 +368,7 @@ const debouncedFetchData = debounce(async () => {
             stateId: selectedStateIds.value,
             activitySummary: selectedActivitySummary.value,
             categories: selectedCategories.value,
+            perPage: selectedRowCount.value,
         }, {
             preserveState: true,
             replace: false,
