@@ -136,7 +136,7 @@ Route::middleware([
         
         $query = FilterSubs::query()->whereNotNull('created_on_odoo')->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
 
-        $query->distinct();
+        // $query->distinct();
 
         if (!empty($dates)) {
             $startDate = Carbon::parse($dates[0]);
