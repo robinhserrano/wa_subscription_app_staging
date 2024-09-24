@@ -122,7 +122,6 @@ Route::middleware([
     })->name('confirmDeliveryRequirement');
 
     Route::get('/subscriptionsToDeliver', function () {
-        $salesQuotations = SalesOrder::all();
 
         $currentPage = (int) Request::input('page', 1);
         $perPage = (int) Request::input('perPage', 100);
@@ -134,9 +133,11 @@ Route::middleware([
         $initialQuery = FilterSubs::all()->whereNotNull('created_on_odoo')->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
 
         $createdOnOdooIds = $initialQuery->pluck('created_on_odoo');
-        
+
         $query = FilterSubs::query()
             ->whereIn('sales_order_no', $createdOnOdooIds);
+
+        $query->distinct();
 
         if (!empty($dates)) {
             $startDate = Carbon::parse($dates[0]);
@@ -174,9 +175,8 @@ Route::middleware([
         $query->orderBy($sortBy, $sortOrder);
 
         return Inertia::render('SubscriptionsToDeliver', [
-            
-         'allss' => $query, 
-            'inital' => $createdOnOdooIds, 
+            // 'allss' => $query,
+            // 'inital' => $createdOnOdooIds,
             // 'initQuery'=> $initialQuery, 
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' => $query->with('orderLine', 'contactAddress')->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString(),
