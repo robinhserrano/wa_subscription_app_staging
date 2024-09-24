@@ -106,10 +106,10 @@ class FilterSubsController extends Controller
             $filteredFilterSubs = Arr::only($orderData, $allowedFilterSubs);
 
             // Check if sales order already exists by name (unique identifier)
-            if (!empty($filteredFilterSubs['invoice_number'])) {
-                $existingFilterSubs = FilterSubs::where('invoice_number', $filteredFilterSubs['invoice_number'])->first();
-            } else {
+            if (!empty($filteredFilterSubs['sales_order_no'])) {
                 $existingFilterSubs = FilterSubs::where('sales_order_no', $filteredFilterSubs['sales_order_no'])->first();
+            } else {
+                $existingFilterSubs = FilterSubs::where('invoice_number', $filteredFilterSubs['invoice_number'])->first();
             }
 
 
