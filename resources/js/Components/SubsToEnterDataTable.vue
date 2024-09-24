@@ -46,7 +46,7 @@
                     :value="category.state_id" />
                 <label :for="category.id" class="ml-2">{{
                     category.name
-                }}</label>
+                    }}</label>
             </div>
             <p class="mt-4 mb-2 text-xl font-bold">Category</p>
             <div v-for="category of categoryTypes" :key="category.id" class="flex items-center mb-2">
@@ -98,6 +98,8 @@
                     </span>
                     <font-awesome-icon v-if="data.category === 'Subscription'" icon="fa-filter-circle-dollar"
                         class="ml-2" />
+                    <i v-if="data.delivered_or_delivery_booked && data.delivered_or_delivery_booked.value !== null"
+                        class="pi pi-truck ml-2"></i>
                 </template>
             </Column>
             <Column field="" header="Created on Odoo" style="min-width: 10rem">

@@ -259,4 +259,40 @@ class FilterSubsController extends Controller
         $message = "Sales orders updated successfully. Updated: $updatedFilterSubs";
         return response()->json(compact('message'), 200); // Created
     }
+
+    public function updateDeliveredOrDeliveryBooked(Request $request, string $id)
+    {
+        try {
+
+            $filterSub = FilterSubs::findOrFail($id);
+
+            $deliveredOrDeliveryBooked = $request->input('delivered_or_delivery_booked');
+            $deliveredOrDeliveryBookedById = $request->input('delivered_or_delivery_booked_by_id');
+            $filterSub->delivered_or_delivery_booked = $deliveredOrDeliveryBooked;
+            $filterSub->delivered_or_delivery_booked_by_id = $deliveredOrDeliveryBookedById;
+            $filterSub->save();
+
+            return response()->json(['filterSub' => $filterSub, 'message' => 'delivered_or_delivery_booked updated successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to update delivered_or_delivery_booked in FilterSub: ' . $e->getMessage()], 500);
+            // return response()->json(['error' => 'Failed to update CreatedOnOdoo in Sales Order:'], 404);
+        }
+    }
+
+    public function bulkConfirmDeliveryBooked(Request $request)
+    {
+        $data = json_decode($request->getContent(), true); // Assuming JSON data
+        $updatedFilterSubs = 0;
+
+        foreach ($data['filterSubIds'] as $subId) {
+            $filterSub = FilterSubs::findOrFail($subId);
+            $filterSub->delivered_or_delivery_booked = 'Delivery Booked';
+            $filterSub->delivered_or_delivery_booked_by_id = $data['delivered_or_delivery_booked_by_id'];
+            $filterSub->save();
+            $updatedFilterSubs++; // Count updated entries
+        }
+
+        $message = "Sales orders updated successfully. Updated: $updatedFilterSubs";
+        return response()->json(compact('message'), 200); // Created
+    }
 }

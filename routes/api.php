@@ -61,3 +61,7 @@ Route::get('/findFilterSubsBySalesOrderNo', [FilterSubsController::class, 'findF
 Route::post('/bulkConfirmFilterSubs', [FilterSubsController::class, 'bulkConfirmFilterSubs']);
 
 Route::post('/bulkDenyFilterSubs', [FilterSubsController::class, 'bulkDenyFilterSubs']);
+
+Route::match(['put', 'patch'], '/updateDeliveredOrDeliveryBooked/{id}', [FilterSubsController::class, 'updateDeliveredOrDeliveryBooked']);
+
+Route::post('/bulkConfirmDeliveryBooked', [FilterSubsController::class, 'bulkConfirmDeliveryBooked']);

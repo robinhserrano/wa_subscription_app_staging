@@ -129,12 +129,12 @@ Route::middleware([
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
         $dates = Request::input('dates', []);
 
-        // $initialQuery = FilterSubs::all()->whereNotNull('created_on_odoo')->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
-        // $createdOnOdooIds = $initialQuery->pluck('created_on_odoo');
-        // $query = FilterSubs::query()
-        //     ->whereIn('sales_order_no', $createdOnOdooIds);
+        $initialQuery = FilterSubs::all()->whereNotNull('created_on_odoo')->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
+        $createdOnOdooIds = $initialQuery->pluck('created_on_odoo');
+        $query = FilterSubs::query()
+            ->whereIn('sales_order_no', $createdOnOdooIds);
         
-        $query = FilterSubs::query()->whereNotNull('created_on_odoo')->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
+        // $query = FilterSubs::query()->whereNotNull('created_on_odoo')->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
 
         // $query->distinct();
 

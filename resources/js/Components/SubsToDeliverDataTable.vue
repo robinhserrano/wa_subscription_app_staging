@@ -45,7 +45,7 @@
                     :value="category.state_id" />
                 <label :for="category.id" class="ml-2">{{
                     category.name
-                    }}</label>
+                }}</label>
             </div>
 
 
@@ -68,6 +68,11 @@
         </Drawer>
 
         <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button>
+        <Button v-if="selectedItems.length" :label="`Mark All As Delivery Booked (${selectedItems.length})`"
+            @click="markAllAsDeliveryBooked" icon="pi pi-truck" class="ml-4"></Button>
+        <!-- 
+        <Button v-if="selectedItems.length" :label="`Deny All (${selectedItems.length})`" @click="denyAll"
+            icon="pi pi-times-circle" class="ml-4"></Button> -->
 
         <Paginator :rows="selectedRowCount" :totalRecords="totalRecord"
             :rowsPerPageOptions="[10, 25, 50, 100, totalRecord].sort((a, b) => a - b)" @page="handlePageChange">
@@ -105,49 +110,25 @@
                 <template #body="{ data }">
                     <span @click="handleCellClick(data)" class="cursor-pointer hover:underline">{{
                         data.sales_order_no }}
-
-                        <!-- {{ data.category }} -->
-
                     </span>
                     <font-awesome-icon v-if="data.category === 'Subscription'" icon="fa-filter-circle-dollar"
                         class="ml-2" />
+                    <i v-if="data.delivered_or_delivery_booked && data.delivered_or_delivery_booked.value !== null"
+                        class="pi pi-truck ml-2"></i>
                 </template>
             </Column>
-            <!-- <Column field="" header="Created on Odoo" style="min-width: 10rem">
-                <template #body="{ data }">
-                    <Select :disabled="true" v-model="data.created_on_odoo" :options="dropdownOptions" filter
-                        optionLabel="name" placeholder="Select Sales Order #" class="w-full md:w-14rem"
-                        @click="handleSelectClickOdooCreatedBy(data)" @change="handleSelectChangeOdooCreatedBy(data)">
-                        <template #value="slotProps">
-                            <div v-if="slotProps.value" class="flex align-items-center">
-
-                                <div v-if="data.created_on_odoo && data.created_on_odoo.value !== null">
-                                    {{ data.created_on_odoo?.name || data.created_on_odoo }} </div>
-                                <div v-else>{{ slotProps.placeholder }}</div>
-                            </div>
-                            <span v-else>
-                                {{ slotProps.placeholder }}
-                            </span>
-
-                        </template>
-                        <template #option="slotProps">
-                            <div class="flex align-items-center">
-                                <div>{{ slotProps.option.name }}</div>
-                            </div>
-                        </template>
-                    </Select>
-                </template>
-            </Column>
-            <Column field="" header="Require Delivery" style="min-width: 10rem">
+            <Column field="" header="Delivered or Delivery Booked" style="min-width: 10rem">
                 <template #body="{ data }">
                     <div class="flex">
-                        <Select v-model="data.required_delivery" :options="dropdownRequireDelivery" filter
+                        <Select v-model="data.delivered_or_delivery_booked" :options="dropdownDeliveredOrBooked" filter
                             optionLabel="name" placeholder="Select Confirmation" class="w-full md:w-14rem"
-                            @change="handleSelectChangeDeliveryConfimation(data)">
+                            @change="handleSelectChangeDeliveredOrDeliveryBooked(data)">
                             <template #value="slotProps">
                                 <div v-if="slotProps.value" class="flex align-items-center">
-                                    <div v-if="data.required_delivery && data.required_delivery.value !== null">
-                                        {{ data.required_delivery?.name || data.required_delivery }} </div>
+                                    <div
+                                        v-if="data.delivered_or_delivery_booked && data.delivered_or_delivery_booked.value !== null">
+                                        {{ data.delivered_or_delivery_booked?.name || data.delivered_or_delivery_booked
+                                        }} </div>
                                     <div v-else>{{ slotProps.placeholder }}</div>
                                 </div>
                                 <span v-else>
@@ -160,18 +141,12 @@
                                 </div>
                             </template>
                         </Select>
-
-
-                        <Avatar v-if="data.required_delivery_updated_by_id"
-                            :label="avatarImage(data.required_delivery_updated_by_id, users)" class="ml-2"
+                        <Avatar v-if="data.delivered_or_delivery_booked_by_id"
+                            :label="avatarImage(data.delivered_or_delivery_booked_by_id, users)" class="ml-2"
                             style="background-color: #dee9fc; color: #1a2551" />
                     </div>
                 </template>
-            </Column> -->
-            <!-- <Column v-if="route().current('confirmDeliveryRequirement')" field="customer_name" header="Customer Name"
-                style="min-width: 10rem" filterField="customer_name">
-
-            </Column> -->
+            </Column>
             <Column field="customer_name" header="Customer Name" style="min-width: 10rem" filterField="customer_name">
             </Column>
             <Column field="address" header="Address" style="min-width: 10rem"></Column>
@@ -295,6 +270,14 @@ const dropdownRequireDelivery = ref([
     { name: 'Deny', value: 'Deny' },
     { name: '- Unselect -', value: null },
 ]);
+
+
+
+const dropdownDeliveredOrBooked = ref([
+    { name: 'Delivery Booked', value: 'Delivery Booked' },
+    { name: '- Unselect -', value: null },
+]);
+
 const dates = ref([]);
 
 const selectedSalesOrder = ref();
@@ -454,20 +437,48 @@ const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
 const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
     try {
         const response = await axios.put(`/api/updateRequiredDeliveryInFilterSubs/${salesOrder.id}`, {
-            required_delivery: salesOrder.required_delivery.value,
-            required_delivery_updated_by_id: props.currentUser.id,
+            delivered_or_delivery_booked: salesOrder.delivered_or_delivery_booked.value,
+            delivered_or_delivery_booked_by_id: props.currentUser.id,
         });
 
 
-        if (salesOrder.required_delivery?.value === 'Confirm') {
+        if (salesOrder.delivered_or_delivery_booked?.value === 'Confirm') {
             // toast.add({ severity: 'success', summary: `Added #${salesOrder.sales_order_no} to Subscriptions to Deliver`, detail: '', life: 3000 })
         } else {
-            toast.add({ severity: 'info', summary: `Moved #${salesOrder.sales_order_no} back to Confirm Delivery Requirement`, detail: '', life: 3000 })
+            toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no} delivery status`, detail: '', life: 3000 })
         }
 
     } catch (error) {
         // Handle error
-        console.error('Failed to update created_on_odoo:', error);
+        console.error('Failed to update delivered_or_delivery_booked:', error);
+        toast.add({ severity: 'error', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
+        // this.$toast.add({ severity: 'error', summary: 'Update Failed', detail: 'Failed to update Created on Odoo.' });
+    }
+}
+
+
+const handleSelectChangeDeliveredOrDeliveryBooked = async (salesOrder) => {
+    try {
+        const response = await axios.put(`/api/updateDeliveredOrDeliveryBooked/${salesOrder.id}`, {
+            delivered_or_delivery_booked: salesOrder.delivered_or_delivery_booked.value,
+            delivered_or_delivery_booked_by_id: props.currentUser.id,
+        });
+
+        // if (salesOrder.delivered_or_delivery_booked?.value === 'Delivery Booked') {
+        toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no} delivery status`, detail: '', life: 3000 })
+        // } else {
+        //     toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no} delivery status`, detail: '', life: 3000 })
+        // }
+
+        // if (salesOrder.delivered_or_delivery_booked?.value === 'Confirm') {
+        //     // toast.add({ severity: 'success', summary: `Added #${salesOrder.sales_order_no} to Subscriptions to Deliver`, detail: '', life: 3000 })
+        // } else {
+        //     toast.add({ severity: 'info', summary: `Moved #${salesOrder.sales_order_no} back to Confirm Delivery Requirement`, detail: '', life: 3000 })
+        // }
+
+    } catch (error) {
+        // Handle error
+        console.error('Failed to update delivered_or_delivery_booked:', error);
         toast.add({ severity: 'error', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
         // this.$toast.add({ severity: 'error', summary: 'Update Failed', detail: 'Failed to update Created on Odoo.' });
     }
@@ -539,13 +550,13 @@ watch(selectedCategories, async (newCategory) => {
 
 const getFilteredData = (data) => {
     return data
-    // .filter(item => item.required_delivery === 'Confirm' ||
-    //     item.required_delivery?.value === 'Confirm'
+    // .filter(item => item.delivered_or_delivery_booked === 'Confirm' ||
+    //     item.delivered_or_delivery_booked?.value === 'Confirm'
     // );
 }
 
 const getCreatedOnOdoosNo = (data) => {
-    return data.filter(item => (item.created_on_odoo === undefined || item.required_delivery?.value === null || item.required_delivery?.value === 'Deny')
+    return data.filter(item => (item.created_on_odoo === undefined || item.delivered_or_delivery_booked?.value === null || item.delivered_or_delivery_booked?.value === 'Deny')
     ).length;
 }
 
@@ -666,4 +677,23 @@ function compareAddresses(originalAddress, contactAddress,
     // If the first component matches, the addresses are equal
     return originalAddress;
 }
+
+const markAllAsDeliveryBooked = async () => {
+    var selectedItemIds = selectedItems.value.map(e => e.id);
+    console.log(selectedItemIds)
+
+    const data = JSON.stringify({
+        filterSubIds: selectedItemIds,
+        delivered_or_delivery_booked_by_id: props.currentUser.id
+    });
+
+    const response = await axios.post('/api/bulkConfirmDeliveryBooked', data, {
+        headers: { 'Content-Type': 'application/json' }
+    });
+    toast.add({ severity: 'success', summary: `Successfully confirmed ${selectedItemIds.length} filter subs`, detail: '', life: 3000 })
+    fetchData()
+
+    selectedItems.value = []
+};
+
 </script>
