@@ -2,8 +2,12 @@
     <div class="card">
         <div>
             <div class="m-4 my-4">
-                <i v-if="dates.length" class="pi pi-calendar"></i> {{ formatDates(dates) }}
-                <!-- <i class="pi pi-map-marker ml-4"></i> {{ selectedStateId }} -->
+                <div v-if="dates.length">
+                    <i class="pi pi-calendar"></i> {{ formatDates(dates) }}
+                </div>
+                <div v-if="selectedStateIds.length">
+                    <i class="pi pi-map-marker"></i> {{ formatStates(selectedStateIds) }}
+                </div>
             </div>
         </div>
         <Toast />
@@ -384,6 +388,11 @@ const formatDates = (dates) => {
     return `${startDate.toLocaleDateString('en-PH', { day: '2-digit', month: '2-digit', year: 'numeric' })} to ${endDate.toLocaleDateString('en-PH', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
 };
 
+const formatStates = (selectedStatesIds) => {
+    return selectedStatesIds
+        .map(selectedStatesId => stateIds.value[selectedStatesId - 1]?.code) // Remove undefined values
+        .join(', ');
+}
 
 const formatCurrency = (value) => {
     return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
