@@ -11,7 +11,6 @@
             </div>
         </div>
         <Toast />
-
         <Drawer v-model:visible="visible" :header="selectedSalesOrderId" class="!w-full md:!w-80 lg:!w-[30rem]">
             <p>
                 <i class="pi pi-user"></i> {{ selectedCustomerName }}
@@ -46,7 +45,7 @@
                     :value="category.state_id" />
                 <label :for="category.id" class="ml-2">{{
                     category.name
-                    }}</label>
+                }}</label>
             </div>
             <p class="mt-4 mb-2 text-xl font-bold">Category</p>
             <div v-for="category of categoryTypes" :key="category.id" class="flex items-center mb-2">
@@ -67,8 +66,8 @@
         <Paginator :rows="selectedRowCount" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
             @page="handlePageChange">
             <template #start="slotProps">
-                {{ filterSubs.from }}-{{ filterSubs.to - getCreatedOnOdoosNo(filterSubs.data) }} /
-                {{ filterSubs.total - getCreatedOnOdoosNo(filterSubs.data) }}
+                {{ filterSubs.from }}-{{ filterSubs.to }} /
+                {{ filterSubs.total }}
             </template>
         </Paginator>
         <DataTable v-model:selection="selectedItems" :value="getFilteredData(
@@ -111,30 +110,6 @@
                             <div v-if="slotProps.value" class="flex align-items-center">
                                 <div v-if="data.created_on_odoo && data.created_on_odoo.value !== null">
                                     {{ data.created_on_odoo?.name || data.created_on_odoo }} </div>
-                                <div v-else>{{ slotProps.placeholder }}</div>
-                            </div>
-                            <span v-else>
-                                {{ slotProps.placeholder }}
-                            </span>
-                        </template>
-                        <template #option="slotProps">
-                            <div class="flex align-items-center">
-                                <div>{{ slotProps.option.name }}</div>
-                            </div>
-                        </template>
-                    </Select>
-                </template>
-            </Column>
-            <Column v-if="route().current('confirmDeliveryRequirement')" field="" header="Require Delivery"
-                style="min-width: 10rem">
-                <template #body="{ data }">
-                    <Select v-model="data.required_delivery" :options="dropdownRequireDelivery" filter
-                        optionLabel="name" placeholder="Select Confirmation" class="w-full md:w-14rem"
-                        @change="handleSelectChangeDeliveryConfimation(data)">
-                        <template #value="slotProps">
-                            <div v-if="slotProps.value" class="flex align-items-center">
-                                <div v-if="data.required_delivery && data.required_delivery.value !== null">
-                                    {{ data.required_delivery?.name || data.required_delivery }} </div>
                                 <div v-else>{{ slotProps.placeholder }}</div>
                             </div>
                             <span v-else>
@@ -200,14 +175,13 @@ import axios from 'axios';
 import { useToast } from 'primevue/usetoast'
 import * as XLSX from 'xlsx';
 import 'primeicons/primeicons.css'
-import { NesVue } from 'nes-vue';
 
 const attrs = useAttrs()
 let props = defineProps({
-    filterSubs: Object,
-    stateIds: Object,
-    filterSubIds: Object,
     currentUser: Object,
+    filterSubs: Object,
+    filterSubIds: Object,
+    stateIds: Object,
 });
 
 const selectedItems = ref([]);
@@ -264,9 +238,6 @@ onMounted(() => {
 });
 
 const handlePageChange = (event) => {
-    // console.log('AAAAAAAAAAAAAAAAA')
-    // console.log(event)
-    // console.log('ZZZZZZZZZZZZZ')
     selectedRowCount.value = event.rows
     currentPage.value = event.page + 1 // Adjusting because page index is 0-based
     console.log('page change')
@@ -279,8 +250,6 @@ const handleSearch = (event) => {
     console.log(event.target.value);
     debouncedFetchData();  // Call the debounced function
 };
-
-
 
 const fetchData = async () => {
     try {
@@ -339,9 +308,6 @@ const debouncedFetchData = debounce(async () => {
     }
 }, 300);
 
-
-
-
 const formatDate = (dateStr) => (dateStr ? new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null);
 
 const formatDates = (dates) => {
@@ -369,7 +335,6 @@ const clearFilter = () => {
 };
 
 const handleCellClick = (salesOrder) => {
-
     visible.value = true
     selectedSalesOrderId.value = salesOrder.sales_order_no
     selectedSalesOrderLines.value = salesOrder.order_line
@@ -387,54 +352,29 @@ const handleSelectClickOdooCreatedBy = (salesOrder) => {
 const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
     try {
         if (salesOrder.created_on_odoo?.value) {
-            const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
+            console.log(salesOrder)
+
+            const response = await axios.post(`/api/createDeliverSub`, {
+                filter_sub_id: salesOrder.id,
                 created_on_odoo: salesOrder.created_on_odoo.value,
                 odoo_created_by_id: props.currentUser.id,
+                due_date: salesOrder.due_date.value,
             });
             toast.add({ severity: 'success', summary: `Moved #${salesOrder.sales_order_no} to Confirm Delivery Requirement`, detail: '', life: 3000 })
         }
     } catch (error) {
         console.error('Failed to update created_on_odoo:', error);
-        toast.add({ severity: 'error', summary: 'Failed to update', detail: '', life: 3000 })
-    }
-}
-
-
-const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
-    try {
-        const response = await axios.put(`/api/updateRequiredDeliveryInFilterSubs/${salesOrder.id}`, {
-            required_delivery: salesOrder.required_delivery.value,
-            required_delivery_updated_by_id: props.currentUser.id,
-        });
-        toast.add({ severity: 'success', summary: 'Success', detail: 'Message Content', life: 3000 })
-    } catch (error) {
-        r
-        console.error('Failed to update created_on_odoo:', error);
-        toast.add({ severity: 'error', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
+        if (error.response.data.error) {
+            toast.add({ severity: 'error', summary: error.response.data.error, detail: '', life: 3000 })
+        } else {
+            toast.add({ severity: 'error', summary: 'Failed to update created on odoo', detail: '', life: 3000 })
+        }
     }
 }
 
 watch(selectedSalesOrderId, async (newSalesOrderId) => {
     if (newSalesOrderId) {
         try {
-            // dropdownOptions.value = []
-            // const response = await axios.get('/api/findSalesOrdersBySalesOrderNo', {
-            //     params: {
-            //         'sales_order_no': newSalesOrderId
-            //     }
-            // });
-            // console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZ')
-            // console.log(response)
-            // console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-            // dropdownOptions.value = response.data.map(item => ({
-            //     name: item.sales_order_no,
-            //     value: item.sales_order_no,
-
-            // })
-
-
-            // );
-
             const response2 = await axios.get('/api/findFilterSubsBySalesOrderNo', {
                 params: {
                     'sales_order_no': newSalesOrderId
@@ -488,14 +428,11 @@ watch(selectedCategories, async (newCategory) => {
     }
 });
 
-
-
-
 const getFilteredData = (data) => {
     return data
-        .filter(item => item.created_on_odoo === null ||
-            item.created_on_odoo?.value === null
-        );
+    // .filter(item => item.created_on_odoo === null ||
+    //     item.created_on_odoo?.value === null
+    // );
 }
 
 const getCreatedOnOdoosNo = (data) => {
@@ -557,8 +494,5 @@ const downloadCSV = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-
 };
-
 </script>

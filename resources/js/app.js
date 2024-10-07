@@ -13,10 +13,10 @@ import Toast from 'primevue/toast';
 // Import FontAwesome core and icons
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faCoffee, faFilterCircleDollar, faUser } from '@fortawesome/free-solid-svg-icons';// Import the icons you need
-
+import { faCoffee, faFilterCircleDollar, faUser, faUnlink } from '@fortawesome/free-solid-svg-icons'; // Import the icons you need
+import ConfirmationService from 'primevue/confirmationservice';
 // Add the icons to the library
-library.add(faFilterCircleDollar, faUser); // Add your icons here
+library.add(faFilterCircleDollar, faUser, faUnlink); // Add your icons here
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -39,7 +39,9 @@ createInertiaApp({
 					}
 				})
 				.use(ToastService)
-				.component('Toast', Toast).component('FontAwesomeIcon', FontAwesomeIcon)
+				.use(ConfirmationService)
+				.component('Toast', Toast)
+				.component('FontAwesomeIcon', FontAwesomeIcon)
 				// .component('DataTable', DataTable)  // Register DataTable globally
 				// .component('Column', Column)
 				.mount(el)

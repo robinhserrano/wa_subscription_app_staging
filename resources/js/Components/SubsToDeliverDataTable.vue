@@ -70,7 +70,7 @@
             <p class="mt-4 mb-2 text-xl font-bold">Date Range</p>
             <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
         </Drawer>
-
+        <!-- {{ props.serviceCodes }} -->
         <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button>
         <Button v-if="selectedItems.length" :label="`Mark All As Delivery Booked (${selectedItems.length})`"
             @click="markAllAsDeliveryBooked" icon="pi pi-truck" class="ml-4"></Button>
@@ -81,8 +81,8 @@
         <Paginator :rows="selectedRowCount" :totalRecords="totalRecord"
             :rowsPerPageOptions="[10, 25, 50, 100, totalRecord].sort((a, b) => a - b)" @page="handlePageChange">
             <template #start="slotProps">
-                {{ filterSubs.from }}-{{ filterSubs.to - getCreatedOnOdoosNo(filterSubs.data) }} /
-                {{ filterSubs.total - getCreatedOnOdoosNo(filterSubs.data) }}
+                {{ filterSubs.from }}-{{ filterSubs.to }} /
+                {{ filterSubs.total  }}
             </template>
         </Paginator>
         <DataTable v-model:selection="selectedItems" :value="getFilteredData(
@@ -110,6 +110,19 @@
             <template #empty> No filterSubs found. </template>
             <template #loading> Loading filterSubs data. Please wait. </template>
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+            <Column field="root_sales_order.sales_order_no" header="Root Sales Order #" style="min-width: 10rem">
+                <template #body="{ data }">
+                    <div style="display: flex; align-items: center;">
+    <span>
+      {{ data.root_sales_order.sales_order_no }}
+    </span>
+    <ConfirmDialog></ConfirmDialog>
+    <div  @click="handleUnlink( data.root_sales_order.sales_order_no, data.sales_order_no,data.id)" style="cursor: pointer; margin-left: 8px;">
+      <font-awesome-icon :icon="['fas', 'link-slash']" :style="{ color: '#800000' }" />
+    </div>
+  </div>
+                </template>
+            </Column>
             <Column field="sales_order_no" header="Sales Order No." style="min-width: 10rem">
                 <template #body="{ data }">
                     <span @click="handleCellClick(data)" class="cursor-pointer hover:underline">{{
@@ -119,6 +132,9 @@
                         class="ml-2" />
                     <i v-if="data.delivered_or_delivery_booked && data.delivered_or_delivery_booked.value !== null"
                         class="pi pi-truck ml-2"></i>
+                        <!-- <Avatar v-if="data.odoo_created_by_id"
+                            :label="avatarImage(data.odoo_created_by_id, users)" class="ml-2"
+                            style="background-color: #dee9fc; color: #1a2551" /> -->
                 </template>
             </Column>
             <Column field="" header="Delivered or Delivery Booked" style="min-width: 10rem">
@@ -145,9 +161,70 @@
                                 </div>
                             </template>
                         </Select>
-                        <Avatar v-if="data.delivered_or_delivery_booked_by_id"
+                        <!-- <Avatar v-if="data.delivered_or_delivery_booked_by_id"
                             :label="avatarImage(data.delivered_or_delivery_booked_by_id, users)" class="ml-2"
-                            style="background-color: #dee9fc; color: #1a2551" />
+                            style="background-color: #dee9fc; color: #1a2551" /> -->
+                            <!-- <Avatar v-if="data.required_delivery_updated_by_id"
+                            :label="avatarImage(data.required_delivery_updated_by_id, users)" class="ml-2"
+                            style="background-color: #dee9fc; color: #1a2551" /> -->
+                    </div>
+                </template>
+            </Column>
+            <Column field="" header="Service Code" style="min-width: 10rem">
+                <template #body="{ data }">
+                    <div class="flex">
+                        <Select v-model="data.service_code_id" :options="serviceCodeDropdownOptions" filter
+                            optionLabel="name" placeholder="Select Code" class="w-full md:w-14rem"
+                            @change="handleServiceCode(data)">
+                            <template #value="slotProps">
+                                <div v-if="slotProps.value" class="flex align-items-center">
+
+
+
+                                    <div
+                                        v-if="data.service_code_id.name == '- Unselect -' && data.service_code_id.value == null">
+                                        {{ slotProps.placeholder }}
+
+                                    </div>
+
+                                    <div v-else-if="data.service_code_id && data.service_code_id.value == null">
+                                        <!-- {{ data.service_code.serviceCode }} -->
+                                        <!-- {{ data.service_code.service_code }} -->
+                                        <div>{{ data.service_code.service_code }} </div>
+                                        <div v-if="data.service_code.total_weight">({{
+                                            data.service_code.total_weight }}kg) </div>
+
+                                    </div>
+
+                                    <div v-else-if="data.service_code_id.value !== null">
+                                        <!-- {{ data.service_code_id?.name || '' }} -->
+                                        <div> {{ data.service_code_id?.name || '' }}</div>
+                                        <div v-if="data.service_code_id?.totalWeight">({{
+                                            data.service_code_id?.totalWeight }}kg) </div>
+                                    </div>
+
+
+
+                                    <div v-else>{{ slotProps.placeholder }}</div>
+                                </div>
+                                <span v-else>
+                                    {{ slotProps.placeholder }}
+                                </span>
+                            </template>
+                            <template #option="slotProps">
+                                <div class="flex align-items-center">
+                                    <div>{{ slotProps.option.name }} </div>
+                                    <div v-if="slotProps.option.totalWeight" class="ml-1">({{
+                                        slotProps.option.totalWeight }}kg) </div>
+
+                                </div>
+                            </template>
+                           aaaaaaaaaaaaaaaaa
+                        </Select>
+
+                        <!-- <Avatar v-if="data.delivered_or_delivery_booked_by_id"
+                            :label="avatarImage(data.delivered_or_delivery_booked_by_id, users)" class="ml-2"
+                            style="background-color: #dee9fc; color: #1a2551" /> -->
                     </div>
                 </template>
             </Column>
@@ -193,34 +270,51 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { CustomerService } from '@/service/CustomerService';
-import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
-import MultiSelect from 'primevue/multiselect';
 import Tag from 'primevue/tag';
 import Select from 'primevue/select';
 import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
 import DatePicker from 'primevue/datepicker';
-import InputNumber from 'primevue/inputnumber';
-import ProgressBar from 'primevue/progressbar';
-import Slider from 'primevue/slider';
-import { NesVue } from 'nes-vue';
 import { router } from '@inertiajs/vue3';
 import Paginator from 'primevue/paginator';
 import debounce from 'lodash/debounce';
 import Drawer from 'primevue/drawer';
 import axios from 'axios';
-import { nextTick } from 'vue';
 import { useToast } from 'primevue/usetoast'
-import RadioButton from 'primevue/radiobutton';
 import * as XLSX from 'xlsx';
 import 'primeicons/primeicons.css'
-import Avatar from 'primevue/avatar';
+import ConfirmDialog from 'primevue/confirmdialog';
+import { useConfirm } from "primevue/useconfirm";
+
+const confirm = useConfirm();
+const handleUnlink = (rootSalesOrder, newSalesOrder, newSalesOrderId) =>   {
+    confirm.require({
+        message: `Do you want to unlink #${newSalesOrder} from #${rootSalesOrder}?`,
+        header: 'Unlink Sales Order',
+        icon: 'pi pi-info-circle',
+        rejectLabel: 'Cancel',
+        rejectProps: {
+            label: 'Cancel',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: 'Unlink',
+            severity: 'danger'
+        },
+        accept: async () => {
+            const response = await axios.delete(`/api/deliverSub/${newSalesOrderId}`);
+            fetchData()
+            toast.add({ severity: 'info', summary: 'Unlinked Successfully', detail: `Unlinked #${newSalesOrder} from #${rootSalesOrder}`, life: 3000 });
+        },
+        reject: () => {}
+    });
+};
 
 
 let props = defineProps({
@@ -229,6 +323,7 @@ let props = defineProps({
     filterSubIds: Object,
     currentUser: Object,
     users: Object,
+    serviceCodes: Object,
 });
 
 const selectedItems = ref([]);
@@ -243,12 +338,13 @@ const salesQuotations = ref();
 const dropdownOptions = ref([]);
 const toast = useToast()
 const stateIds = ref([])
-
 const selectedSalesOrderId = ref();
 const selectedSalesOrderLines = ref();
 const selectedCustomerName = ref();
 const selectedCustomerAddress = ref();
 const selectedCustomerContactAddress = ref([]);
+
+const serviceCodeDropdownOptions = ref([]);
 
 
 
@@ -297,6 +393,20 @@ onMounted(() => {
     totalRecord.value = props.filterSubs.total
     salesQuotations.value = props.salesQuotations
     stateIds.value = props.stateIds
+
+    serviceCodeDropdownOptions.value = props.serviceCodes.map(item => ({
+        name: item.service_code,
+        value: item.id,
+        totalWeight: item.total_weight
+    })
+
+
+    );
+    serviceCodeDropdownOptions.value.push({ name: '- Unselect -', value: null, totalWeight: null });
+
+    console.log('aaaaaaaaa')
+    console.log(props.serviceCodes)
+    console.log('zzzzzzzzzzz')
 });
 
 const handlePageChange = (event) => {
@@ -312,8 +422,6 @@ const handleSearch = (event) => {
     console.log(event.target.value);
     debouncedFetchData();  // Call the debounced function
 };
-
-
 
 const fetchData = async () => {
     try {
@@ -445,7 +553,7 @@ const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
 
 const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
     try {
-        const response = await axios.put(`/api/updateRequiredDeliveryInFilterSubs/${salesOrder.id}`, {
+        const response = await axios.put(`/api/updateRequiredDeliveryInDeliverSubs/${salesOrder.id}`, {
             delivered_or_delivery_booked: salesOrder.delivered_or_delivery_booked.value,
             delivered_or_delivery_booked_by_id: props.currentUser.id,
         });
@@ -474,7 +582,38 @@ const handleSelectChangeDeliveredOrDeliveryBooked = async (salesOrder) => {
         });
 
         // if (salesOrder.delivered_or_delivery_booked?.value === 'Delivery Booked') {
-        toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no} delivery status`, detail: '', life: 3000 })
+        toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no} delivered or delivery booked status`, detail: '', life: 3000 })
+        // } else {
+        //     toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no} delivery status`, detail: '', life: 3000 })
+        // }
+
+        // if (salesOrder.delivered_or_delivery_booked?.value === 'Confirm') {
+        //     // toast.add({ severity: 'success', summary: `Added #${salesOrder.sales_order_no} to Subscriptions to Deliver`, detail: '', life: 3000 })
+        // } else {
+        //     toast.add({ severity: 'info', summary: `Moved #${salesOrder.sales_order_no} back to Confirm Delivery Requirement`, detail: '', life: 3000 })
+        // }
+
+    } catch (error) {
+        // Handle error
+        console.error('Failed to update delivered_or_delivery_booked:', error);
+        toast.add({ severity: 'error', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
+        // this.$toast.add({ severity: 'error', summary: 'Update Failed', detail: 'Failed to update Created on Odoo.' });
+    }
+}
+
+const handleServiceCode = async (salesOrder) => {
+    try {
+
+        console.log(salesOrder)
+        const response = await axios.put(`/api/updateServiceCode/${salesOrder.id}`, {
+            service_code_id: salesOrder.service_code_id.value,
+            // delivered_or_delivery_booked_by_id: props.currentUser.id,
+        });
+
+        // if (salesOrder.delivered_or_delivery_booked?.value === 'Delivery Booked') {
+        toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no}'s service code`, detail: '', life: 3000 })
+        fetchData()
+        
         // } else {
         //     toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no} delivery status`, detail: '', life: 3000 })
         // }
@@ -564,10 +703,10 @@ const getFilteredData = (data) => {
     // );
 }
 
-const getCreatedOnOdoosNo = (data) => {
-    return data.filter(item => (item.created_on_odoo === undefined || item.delivered_or_delivery_booked?.value === null || item.delivered_or_delivery_booked?.value === 'Deny')
-    ).length;
-}
+// const getCreatedOnOdoosNo = (data) => {
+//     return data.filter(item => (item.created_on_odoo === undefined || item.delivered_or_delivery_booked?.value === null || item.delivered_or_delivery_booked?.value === 'Deny')
+//     ).length;
+// }
 
 const avatarImage = (userId, users) => {
     // Find the user with the given userId
@@ -625,9 +764,6 @@ const downloadCSV = () => {
         console.log(item['contact_address'])
         item.recordType = 'C'
         item.receiverCode = null
-
-
-
         item.street = item['contact_address'][0].street  ///compareAddresses(item['address'], item['contact_address'][0].complete_address)
         item.street2 = item['contact_address'][0].street2
         item.receiverAddress3 = null
@@ -636,10 +772,10 @@ const downloadCSV = () => {
         item.receiverContact = item.customer_name
         item.reference2 = null
         item.specialInstructions = null
-        item.serviceCode = 'TB1'
-        item.numberOfItems = 1
-        item.totalWeight = 1
-        item.totalCubicVolume = 0.004
+        item.serviceCode = item.service_code?.service_code //'TB1'
+        item.numberOfItems = item.service_code?.number_of_items
+        item.totalWeight =  item.service_code?.total_weight
+        item.totalCubicVolume =  item.service_code?.total_cubic_volume
         item.authorityToLeave = 'Y'
 
         let newItem = {};
@@ -690,18 +826,15 @@ function compareAddresses(originalAddress, contactAddress,
 const markAllAsDeliveryBooked = async () => {
     var selectedItemIds = selectedItems.value.map(e => e.id);
     console.log(selectedItemIds)
-
     const data = JSON.stringify({
         filterSubIds: selectedItemIds,
         delivered_or_delivery_booked_by_id: props.currentUser.id
     });
-
     const response = await axios.post('/api/bulkConfirmDeliveryBooked', data, {
         headers: { 'Content-Type': 'application/json' }
     });
     toast.add({ severity: 'success', summary: `Successfully confirmed ${selectedItemIds.length} filter subs`, detail: '', life: 3000 })
     fetchData()
-
     selectedItems.value = []
 };
 

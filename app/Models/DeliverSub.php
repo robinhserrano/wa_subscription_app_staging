@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class FilterSubs extends Model
+class DeliverSub extends Model
 {
-    use HasFactory;
-
     protected $guarded = [];
+
+    use HasFactory;
 
     public function orderLine()
     {
@@ -21,8 +21,13 @@ class FilterSubs extends Model
         return $this->hasMany(Contact::class, 'name', 'customer_name')->with('children', 'parent');
     }
 
-    public function deliverSubs()
+    public function rootSalesOrder()
     {
-        return $this->hasMany(DeliverSub::class, 'filter_sub_id', 'id');
+        return $this->hasOne(FilterSubs::class, 'id', 'filter_sub_id')->select('id', 'sales_order_no');
+    }
+
+    public function serviceCode()
+    {
+        return $this->hasOne(ServiceCode::class, 'id', 'service_code_id')->select('id', 'service_code', 'total_weight', 'number_of_items', 'total_cubit_volume');
     }
 }

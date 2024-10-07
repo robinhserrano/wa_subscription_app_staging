@@ -157,25 +157,6 @@ class FilterSubsController extends Controller
         }
     }
 
-
-    public function updateRequiredDeliveryInFilterSubs(Request $request, string $id)
-    {
-        try {
-            $filterSub = FilterSubs::findOrFail($id);
-            $requiredDelivery = $request->input('required_delivery');
-            $requiredDeliveryUpdatedById = $request->input('required_delivery_updated_by_id');
-
-            $filterSub->required_delivery = $requiredDelivery;
-            $filterSub->required_delivery_updated_by_id = $requiredDeliveryUpdatedById;
-            $filterSub->save();
-
-            return response()->json(['filterSub' => $filterSub, 'message' => 'required_delivery updated successfully'], 200);
-        } catch (Exception $e) {
-            return response()->json(['error' => 'Failed to update required_delivery in FilterSub: ' . $e->getMessage()], 500);
-            // return response()->json(['error' => 'Failed to update CreatedOnOdoo in Sales Order:'], 404);
-        }
-    }
-
     public function findFilterSubsBySalesOrderNo(Request $request)
     {
         $request->validate([
@@ -211,7 +192,7 @@ class FilterSubsController extends Controller
                 }
             }
 
-            $filteredFilterSub = FilterSubs::query()->whereIn('customer_name', $names)->where('sales_order_no', '!=', $salesOrderNo)
+            $filteredFilterSub = FilterSubs::query()->whereIn('customer_name', $names) //->where('sales_order_no', '!=', $salesOrderNo)
                 ->get()->pluck('sales_order_no');
 
             return response()->json(
@@ -224,75 +205,5 @@ class FilterSubsController extends Controller
                 'message' => 'No sales orders found for the given sales order number'
             ], 404); // Not Found
         }
-    }
-
-    public function bulkConfirmFilterSubs(Request $request)
-    {
-        $data = json_decode($request->getContent(), true); // Assuming JSON data
-        $updatedFilterSubs = 0;
-
-        foreach ($data['filterSubIds'] as $subId) {
-            $filterSub = FilterSubs::findOrFail($subId);
-            $filterSub->required_delivery = 'Confirm';
-            $filterSub->required_delivery_updated_by_id = $data['required_delivery_updated_by_id'];
-            $filterSub->save();
-            $updatedFilterSubs++; // Count updated entries
-        }
-
-        $message = "Sales orders updated successfully. Updated: $updatedFilterSubs";
-        return response()->json(compact('message'), 200); // Created
-    }
-
-    public function bulkDenyFilterSubs(Request $request)
-    {
-        $data = json_decode($request->getContent(), true); // Assuming JSON data
-        $updatedFilterSubs = 0;
-
-        foreach ($data['filterSubIds'] as $subId) {
-            $filterSub = FilterSubs::findOrFail($subId);
-            $filterSub->required_delivery = 'Deny';
-            $filterSub->required_delivery_updated_by_id = $data['required_delivery_updated_by_id'];
-            $filterSub->save();
-            $updatedFilterSubs++; // Count updated entries
-        }
-
-        $message = "Sales orders updated successfully. Updated: $updatedFilterSubs";
-        return response()->json(compact('message'), 200); // Created
-    }
-
-    public function updateDeliveredOrDeliveryBooked(Request $request, string $id)
-    {
-        try {
-
-            $filterSub = FilterSubs::findOrFail($id);
-
-            $deliveredOrDeliveryBooked = $request->input('delivered_or_delivery_booked');
-            $deliveredOrDeliveryBookedById = $request->input('delivered_or_delivery_booked_by_id');
-            $filterSub->delivered_or_delivery_booked = $deliveredOrDeliveryBooked;
-            $filterSub->delivered_or_delivery_booked_by_id = $deliveredOrDeliveryBookedById;
-            $filterSub->save();
-
-            return response()->json(['filterSub' => $filterSub, 'message' => 'delivered_or_delivery_booked updated successfully'], 200);
-        } catch (Exception $e) {
-            return response()->json(['error' => 'Failed to update delivered_or_delivery_booked in FilterSub: ' . $e->getMessage()], 500);
-            // return response()->json(['error' => 'Failed to update CreatedOnOdoo in Sales Order:'], 404);
-        }
-    }
-
-    public function bulkConfirmDeliveryBooked(Request $request)
-    {
-        $data = json_decode($request->getContent(), true); // Assuming JSON data
-        $updatedFilterSubs = 0;
-
-        foreach ($data['filterSubIds'] as $subId) {
-            $filterSub = FilterSubs::findOrFail($subId);
-            $filterSub->delivered_or_delivery_booked = 'Delivery Booked';
-            $filterSub->delivered_or_delivery_booked_by_id = $data['delivered_or_delivery_booked_by_id'];
-            $filterSub->save();
-            $updatedFilterSubs++; // Count updated entries
-        }
-
-        $message = "Sales orders updated successfully. Updated: $updatedFilterSubs";
-        return response()->json(compact('message'), 200); // Created
     }
 }

@@ -6,11 +6,9 @@ const page = usePage();
 
 let props = defineProps({
     filterSubs: Object,
-    stateIds: Object,
-    activitySummaries: Object,
     filterSubIds: Object,
+    stateIds: Object,
     users: Object,
-
 });
 
 </script>
@@ -19,8 +17,7 @@ let props = defineProps({
     <AppLayout title="ConfirmDeliveryRequirement">
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
             <ConfirmDeliveryRequirementDataTable :filterSubs="filterSubs" :stateIds="stateIds"
-                :activitySummaries="activitySummaries" :filterSubIds="filterSubIds" :currentUser="page.props.auth.user"
-                :users="users" />
+                :filterSubIds="filterSubIds" :currentUser="page.props.auth.user" :users="users" />
         </div>
     </AppLayout>
 </template>

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivitySummaryController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\DeliverSubController;
 use App\Http\Controllers\FilterSubsController;
 use App\Http\Controllers\OrderLineController;
 use App\Http\Controllers\SalesOrderController;
@@ -38,30 +39,29 @@ Route::middleware('auth:sanctum')->resource('/filterSubs', FilterSubsController:
     'except' => ['create', 'edit']
 ])->middleware('auth:sanctum');
 
-Route::post('/bulkStoreFilterSubs', [FilterSubsController::class, 'bulkStoreFilterSubs']);
-
-Route::post('/bulkStoreOrderLine', [OrderLineController::class, 'bulkStoreOrderLine']);
-
 Route::post('/bulkStoreSalesOrder', [SalesOrderController::class, 'bulkStoreSalesOrder']);
-
 Route::get('/findSalesOrdersBySalesOrderNo', [SalesOrderController::class, 'findSalesOrdersBySalesOrderNo']);
 
+Route::post('/bulkStoreFilterSubs', [FilterSubsController::class, 'bulkStoreFilterSubs']);
 Route::match(['put', 'patch'], '/updateCreatedOnOdooInFilterSubs/{id}', [FilterSubsController::class, 'updateCreatedOnOdooInFilterSubs']);
+Route::get('/findFilterSubsBySalesOrderNo', [FilterSubsController::class, 'findFilterSubsBySalesOrderNo']);
+// Route::post('/bulkConfirmFilterSubs', [FilterSubsController::class, 'bulkConfirmFilterSubs']);
+// Route::post('/bulkDenyFilterSubs', [FilterSubsController::class, 'bulkDenyFilterSubs']);
+// Route::post('/bulkConfirmDeliveryBooked', [FilterSubsController::class, 'bulkConfirmDeliveryBooked']);
+
+Route::post('/createDeliverSub', [DeliverSubController::class, 'createDeliverSub']);
+Route::match(['put', 'patch'], '/updateServiceCode/{id}', [DeliverSubController::class, 'updateServiceCode']);
+Route::match(['put', 'patch'], '/updateRequiredDeliveryInDeliverSubs/{id}', [DeliverSubController::class, 'updateRequiredDeliveryInDeliverSubs']);
+Route::match(['put', 'patch'], '/updateDeliveredOrDeliveryBooked/{id}', [DeliverSubController::class, 'updateDeliveredOrDeliveryBooked']);
+Route::post('/bulkConfirmDeliverSubs', [DeliverSubController::class, 'bulkConfirmDeliverSubs']);
+Route::post('/bulkDenyDeliverSubs', [DeliverSubController::class, 'bulkDenyDeliverSubs']);
+Route::post('/bulkConfirmDeliveryBooked', [DeliverSubController::class, 'bulkConfirmDeliveryBooked']);
+Route::delete('deliverSub/{id}',  [DeliverSubController::class, 'destroy']);
 
 Route::post('/bulkStateIdStore', [StateIdController::class, 'bulkStateIdStore']);
-
-Route::match(['put', 'patch'], '/updateRequiredDeliveryInFilterSubs/{id}', [FilterSubsController::class, 'updateRequiredDeliveryInFilterSubs']);
 
 Route::post('/bulkContactsStore', [ContactController::class, 'bulkContactsStore']);
 
 Route::post('/bulkActivitySummaryStore', [ActivitySummaryController::class, 'bulkActivitySummaryStore']);
 
-Route::get('/findFilterSubsBySalesOrderNo', [FilterSubsController::class, 'findFilterSubsBySalesOrderNo']);
-
-Route::post('/bulkConfirmFilterSubs', [FilterSubsController::class, 'bulkConfirmFilterSubs']);
-
-Route::post('/bulkDenyFilterSubs', [FilterSubsController::class, 'bulkDenyFilterSubs']);
-
-Route::match(['put', 'patch'], '/updateDeliveredOrDeliveryBooked/{id}', [FilterSubsController::class, 'updateDeliveredOrDeliveryBooked']);
-
-Route::post('/bulkConfirmDeliveryBooked', [FilterSubsController::class, 'bulkConfirmDeliveryBooked']);
+Route::post('/bulkStoreOrderLine', [OrderLineController::class, 'bulkStoreOrderLine']);

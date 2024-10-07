@@ -5,20 +5,22 @@ import { usePage } from '@inertiajs/vue3';
 const page = usePage();
 
 let props = defineProps({
-    filterSubs: Object,
     filterSubIds: Object,
+    filterSubs: Object,
     stateIds: Object,
-    serviceCodes: Object,
-    users: Object, 
+    serviceCodes: Object, 
+    users: Object,
+        // activitySummaries: Object,
+
 });
 
 </script>
 
 <template>
-    <AppLayout title="SubscriptionsToDeliver">
+    <AppLayout title="ForUpselling">
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
-            <SubsToDeliverDataTable :filterSubs="filterSubs" :stateIds="stateIds"
-                :filterSubIds="filterSubIds" :currentUser="page.props.auth.user" :users="users" :serviceCodes="serviceCodes"/>
+            <SubsToDeliverDataTable :filterSubs="filterSubs" :stateIds="stateIds" :activitySummaries="activitySummaries"
+                :filterSubIds="filterSubIds" :serviceCodes="serviceCodes" :currentUser="page.props.auth.user" :users="users" />
         </div>
     </AppLayout>
 </template>

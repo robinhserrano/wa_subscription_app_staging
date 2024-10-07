@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('filter_subs', function (Blueprint $table) {
+        Schema::create('deliver_subs', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
             $table->string('invoice_number')->nullable();
@@ -26,16 +26,23 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->timestamp('due_date')->nullable();
             // $table->string('created_on_odoo')->nullable();
-            // $table->integer('odoo_created_by_id')->nullable();
-            // $table->string('required_delivery')->nullable();
-            // $table->integer('required_delivery_updated_by_id')->nullable();
+            $table->integer('odoo_created_by_id')->nullable();
+            $table->string('required_delivery')->nullable();
+            $table->integer('required_delivery_updated_by_id')->nullable();
+            $table->unique(['sales_order_no', 'due_date', 'filter_sub_id']);
+            $table->unsignedBigInteger('filter_sub_id')->nullable(); // Reference to the primary key in filter_subs
+            $table->foreign('filter_sub_id')->references('id')->on('filter_subs')->onDelete('cascade');
+            $table->integer('service_code_id')->nullable();
+            $table->string('delivered_or_delivery_booked')->nullable();
+            $table->integer('delivered_or_delivery_booked_by_id')->nullable();
         });
     }
+
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('filter_subs');
+        Schema::dropIfExists('deliver_subs');
     }
 };
