@@ -63,8 +63,8 @@
             <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
         </Drawer>
         <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV(stateIds)" class="ml-4"></Button>
-        <Paginator :rows="selectedRowCount" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
-            @page="handlePageChange">
+        <Paginator :rows="selectedRowCount" :totalRecords="totalRecord"
+            :rowsPerPageOptions="[10, 25, 50, 100, totalRecord].sort((a, b) => a - b)" @page="handlePageChange">
             <template #start="slotProps">
                 {{ filterSubs.from }}-{{ filterSubs.to }} /
                 {{ filterSubs.total }}
