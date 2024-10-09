@@ -62,7 +62,7 @@
             <p class="mt-4 mb-2 text-xl font-bold">Date Range</p>
             <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
         </Drawer>
-        <!-- <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button> -->
+        <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV(stateIds)" class="ml-4"></Button>
         <Paginator :rows="selectedRowCount" :totalRecords="totalRecord" :rowsPerPageOptions="[10, 25, 50, 100]"
             @page="handlePageChange">
             <template #start="slotProps">
@@ -441,32 +441,87 @@ const getCreatedOnOdoosNo = (data) => {
     ).length;
 }
 
-const downloadCSV = () => {
-    // Define custom headers and corresponding columns
+// const downloadCSV = (stateIds) => {
+//     const headers = {
+//         'Invoice Number': 'invoice_number',
+//         'Sales Order': 'sales_order_no',
+//         'Customer Name': 'customer_name',
+//         'Invoice Date': 'invoice_date',
+//         'Payment Status': 'payment_status',
+//         'Address': 'address',
+//         'State': 'state_id',
+//         'Activity Summary': 'activity_summary',
+//         'Phone Number': 'phone',
+//         'Email': 'email',
+//         'Due Date': 'due_date',
+//         'Created on Odoo': 'created_on_odoo',
+//     };
+
+//     const groupedData = {};
+
+//     // Map JSON data to include only selected columns with custom headers
+//     selectedItems.value.forEach(item => {
+//         item.state_id = stateIds[item.state_id - 1]?.name;
+//         const newItem = {};
+//         for (const [header, key] of Object.entries(headers)) {
+//             newItem[header] = item[key];
+//         }
+
+//         if (!groupedData[item.state_id]) {
+//             groupedData[item.state_id] = [];
+//         }
+//         groupedData[item.state_id].push(newItem);
+//     });
+
+//     // Create a new workbook
+//     const wb = XLSX.utils.book_new();
+
+//     // Create a worksheet for each state and append it to the workbook
+//     for (const state in groupedData) {
+//         const ws = XLSX.utils.json_to_sheet(groupedData[state]);
+//         XLSX.utils.book_append_sheet(wb, ws, state);
+//     }
+
+//     // Generate CSV file for the first state as an example (or modify as needed)
+//     const csvOutput = XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(groupedData[Object.keys(groupedData)[0]]));
+//     const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+//     const url = URL.createObjectURL(blob);
+
+//     const link = document.createElement('a');
+//     link.href = url;
+//     link.setAttribute('download', 'subs_to_enter.csv');
+//     document.body.appendChild(link);
+//     link.click();
+//     document.body.removeChild(link);
+// };
+
+const downloadCSV2 = (stateIds) => {
     const headers = {
-        'Record Type': 'C',
-        'Reivery Code': '',
-        'Receiver Name': 'customer_name', //C
-        // Receiver Address 1 //D
-        // Receiver Address 2 //E
-        // Receiver Address 3 //F
-        // Receiver Suburb //G
-        // Receiver Postcode //H
-        'Receiver Contact': 'customer_name',//I
-        'Receiver Phone': 'phone', //J
-        'Email': 'email', //K
-        'Reference 1': 'invoice_number', //L
-        'Reference 2': 'invoice_date', //M
-        'Payment Status': 'payment_status', //N
-        //O
-        //P
-        //Q
-        //R
-        //'Authority to Leave': Y (Default) //S
+        'Invoice Number': 'invoice_number',
+        'Sales Order': 'sales_order_no',
+        'Customer Name': 'customer_name',
+        'Invoice Date': 'invoice_date',
+        'Payment Status': 'payment_status',
+        'Address': 'address',
+        'State': 'state_id',
+        'Activity Summary': 'activity_summary',
+        'Phone Number': 'phone',
+        'Email': 'email',
+        'Due Date': 'due_date',
+        'Created on Odoo': 'created_on_odoo',
     };
+
 
     // Map JSON data to include only selected columns with custom headers
     const mappedData = selectedItems.value.map(item => {
+        // console.log('A')
+        // console.log(item['address'])
+        // console.log(item['contact_address'].complete_address)
+      
+        console.log(item)
+        console.log(item['contact_address'])
+        item.state_id =   stateIds[item.state_id - 1]?.name;
+
         let newItem = {};
         for (const [header, key] of Object.entries(headers)) {
             newItem[header] = item[key]
@@ -490,9 +545,80 @@ const downloadCSV = () => {
 
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'data.csv');
+    link.setAttribute('download', 'subs_to_enter.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 };
+const downloadCSV = (stateIds) => {
+    const headers = {
+        'Invoice Number': 'invoice_number',
+        'Sales Order': 'sales_order_no',
+        'Customer Name': 'customer_name',
+        'Invoice Date': 'invoice_date',
+        'Payment Status': 'payment_status',
+        'Address': 'address',
+        'State': 'state_id',
+        'Activity Summary': 'activity_summary',
+        'Phone Number': 'phone',
+        'Email': 'email',
+        'Due Date': 'due_date',
+        'Created on Odoo': 'created_on_odoo',
+    };
+
+    // Map JSON data to include only selected columns with custom headers
+    const mappedData = selectedItems.value.map(item => {
+        item.state_id = stateIds[item.state_id - 1]?.name;
+
+        let newItem = {};
+        for (const [header, key] of Object.entries(headers)) {
+            newItem[header] = item[key];
+        }
+
+        return newItem;
+    });
+
+    // Group items by state
+    const groupedData = mappedData.reduce((acc, item) => {
+        const stateName = item['State'];
+        if (!acc[stateName]) {
+            acc[stateName] = [];
+        }
+        acc[stateName].push(item);
+        return acc;
+    }, {});
+
+    // Create a new workbook
+    const wb = XLSX.utils.book_new();
+
+    // Add each state as a separate sheet
+    for (const [stateName, items] of Object.entries(groupedData)) {
+        const ws = XLSX.utils.json_to_sheet(items);
+        XLSX.utils.book_append_sheet(wb, ws, stateName);
+    }
+
+    // Generate the Excel file and initiate download
+    const excelOutput = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+    const blob = new Blob([s2ab(excelOutput)], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'subs_to_enter.xlsx');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+// Helper function to convert string to ArrayBuffer
+function s2ab(s) {
+    const buf = new ArrayBuffer(s.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i < s.length; i++) {
+        view[i] = s.charCodeAt(i) & 0xFF;
+    }
+    return buf;
+}
+
+
 </script>

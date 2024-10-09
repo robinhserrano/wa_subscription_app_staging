@@ -801,7 +801,7 @@ const downloadCSV = () => {
 
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'data.csv');
+    link.setAttribute('download', 'subs_to_deliver.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
