@@ -25,4 +25,19 @@ class FilterSubs extends Model
     {
         return $this->hasMany(DeliverSub::class, 'filter_sub_id', 'id');
     }
+
+    public function statusUpdatedBy()
+    {
+        return $this->hasOne(User::class, 'id', 'status_updated_by')->select('id', 'name');;
+    }
+
+    public function remarksUpdatedBy()
+    {
+        return $this->hasOne(User::class, 'id', 'remarks_updated_by')->select('id', 'name');;
+    }
+
+    public function assignedUserId()
+    {
+        return $this->hasOne(User::class, 'id', 'assigned_user_id')->select('id', 'name');;
+    }
 }

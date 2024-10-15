@@ -45,6 +45,9 @@ Route::get('/findSalesOrdersBySalesOrderNo', [SalesOrderController::class, 'find
 Route::post('/bulkStoreFilterSubs', [FilterSubsController::class, 'bulkStoreFilterSubs']);
 Route::match(['put', 'patch'], '/updateCreatedOnOdooInFilterSubs/{id}', [FilterSubsController::class, 'updateCreatedOnOdooInFilterSubs']);
 Route::get('/findFilterSubsBySalesOrderNo', [FilterSubsController::class, 'findFilterSubsBySalesOrderNo']);
+Route::match(['put', 'patch'], '/updateUpsellStatus/{id}', [FilterSubsController::class, 'updateUpsellStatus']);
+Route::match(['put', 'patch'], '/updateNotes/{id}', [FilterSubsController::class, 'updateNotes']);
+
 // Route::post('/bulkConfirmFilterSubs', [FilterSubsController::class, 'bulkConfirmFilterSubs']);
 // Route::post('/bulkDenyFilterSubs', [FilterSubsController::class, 'bulkDenyFilterSubs']);
 // Route::post('/bulkConfirmDeliveryBooked', [FilterSubsController::class, 'bulkConfirmDeliveryBooked']);

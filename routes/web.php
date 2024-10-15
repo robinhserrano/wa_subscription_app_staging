@@ -172,7 +172,7 @@ Route::middleware([
             });
         }
 
-        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'serviceCode')->orderBy($sortBy, $sortOrder)->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
+        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'serviceCode', 'deliveredOrDeliveryBookedBy')->orderBy($sortBy, $sortOrder)->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
 
         $stateIds = Cache::remember('state_ids', 60, function () {
             return StateId::all()->sortByDesc('state_id');
@@ -199,7 +199,7 @@ Route::middleware([
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
         $dates = Request::input('dates', []);
 
-        $query = DeliverSub::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
+        $query = FilterSubs::query(); //->whereNull('created_on_odoo');
 
         if (!empty($dates)) {
             $startDate = Carbon::parse($dates[0]);
@@ -212,13 +212,20 @@ Route::middleware([
             $query->orderBy('customer_name', 'asc');
         }
 
+        $query->whereIn('activity_summary', [
+            'Independent 3 + 3 Due for Change',
+            '3 + 3 Stage Filter',
+            '3 Stage Filter',
+            'Final Date to Order Filters for Warranty Extension'
+        ]);
+
         if ($categories = Request::input('categories', [])) {
             $query->whereIn('category', $categories);
         }
 
-        if ($activitySummary = Request::input('activitySummary', [])) {
-            $query->whereIn('activity_summary', $activitySummary);
-        }
+        // if ($activitySummary = Request::input('activitySummary', [])) {
+
+        //   }
 
         if ($stateId = Request::input('stateId', [])) {
             $query->whereIn('state_id', $stateId);
@@ -231,22 +238,16 @@ Route::middleware([
             });
         }
 
-        $filterSubs = $query->with('orderLine', 'contactAddress', 'serviceCode')->orderBy($sortBy, $sortOrder)->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
+        $filterSubs = $query->with('orderLine', 'contactAddress', 'statusUpdatedBy', 'remarksUpdatedBy')->orderBy($sortBy, $sortOrder)->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
 
         $stateIds = Cache::remember('state_ids', 60, function () {
             return StateId::all()->sortByDesc('state_id');
-        });
-
-
-        $serviceCodes = Cache::remember('service_code', 60, function () {
-            return ServiceCode::all();
         });
 
         return Inertia::render('ForUpselling', [
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' =>  $filterSubs,
             'stateIds' => $stateIds,
-            'serviceCodes' => $serviceCodes,
         ]);
     })->name('forUpselling');
     // Route::get('/subscriptionsToDeliver', function () {

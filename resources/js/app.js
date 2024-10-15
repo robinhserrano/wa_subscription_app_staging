@@ -15,6 +15,7 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faCoffee, faFilterCircleDollar, faUser, faUnlink } from '@fortawesome/free-solid-svg-icons'; // Import the icons you need
 import ConfirmationService from 'primevue/confirmationservice';
+import Tooltip from 'primevue/tooltip';
 // Add the icons to the library
 library.add(faFilterCircleDollar, faUser, faUnlink); // Add your icons here
 
@@ -42,6 +43,7 @@ createInertiaApp({
 				.use(ConfirmationService)
 				.component('Toast', Toast)
 				.component('FontAwesomeIcon', FontAwesomeIcon)
+				.directive('tooltip', Tooltip)
 				// .component('DataTable', DataTable)  // Register DataTable globally
 				// .component('Column', Column)
 				.mount(el)

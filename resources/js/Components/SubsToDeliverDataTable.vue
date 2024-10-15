@@ -53,12 +53,12 @@
             </div>
 
 
-            <p class="mt-4 mb-2 text-xl font-bold">Category</p>
+            <!-- <p class="mt-4 mb-2 text-xl font-bold">Category</p>
             <div v-for="category of categoryTypes" :key="category.id" class="flex items-center mb-2">
                 <Checkbox v-model="selectedCategories" :inputId="category.name" name="category"
                     :value="category.name" />
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
-            </div>
+            </div> -->
 
 
             <p class="mt-4 mb-2 text-xl font-bold">Activity Summary</p>
@@ -139,16 +139,17 @@
             </Column>
             <Column field="" header="Delivered or Delivery Booked" style="min-width: 10rem">
                 <template #body="{ data }">
-                    <div class="flex">
+                    <div class="flex items-center">
                         <Select v-model="data.delivered_or_delivery_booked" :options="dropdownDeliveredOrBooked" filter
                             optionLabel="name" placeholder="Select Confirmation" class="w-full md:w-14rem"
                             @change="handleSelectChangeDeliveredOrDeliveryBooked(data)">
                             <template #value="slotProps">
                                 <div v-if="slotProps.value" class="flex align-items-center">
-                                    <div
-                                        v-if="data.delivered_or_delivery_booked && data.delivered_or_delivery_booked.value !== null">
+                                    <div v-if="data.delivered_or_delivery_booked && data.delivered_or_delivery_booked.value !== null">
                                         {{ data.delivered_or_delivery_booked?.name || data.delivered_or_delivery_booked
-                                        }} </div>
+                                        }} 
+                                      
+                                    </div>
                                     <div v-else>{{ slotProps.placeholder }}</div>
                                 </div>
                                 <span v-else>
@@ -161,6 +162,12 @@
                                 </div>
                             </template>
                         </Select>
+                        <Avatar v-if="data.delivered_or_delivery_booked_by_id"
+                            class="ml-2"
+                            style="background-color: #ffffff; color: #ffffff" 
+                          v-tooltip="`Last updated by:\n${data.delivered_or_delivery_booked_by.name}`">
+                            <img :src="data.delivered_or_delivery_booked_by.profile_photo_url" alt="User Initials" />
+                        </Avatar>
                         <!-- <Avatar v-if="data.delivered_or_delivery_booked_by_id"
                             :label="avatarImage(data.delivered_or_delivery_booked_by_id, users)" class="ml-2"
                             style="background-color: #dee9fc; color: #1a2551" /> -->

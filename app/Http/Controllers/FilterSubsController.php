@@ -206,4 +206,46 @@ class FilterSubsController extends Controller
             ], 404); // Not Found
         }
     }
+
+    public function updateUpsellStatus(Request $request, string $id)
+    {
+        try {
+
+            $filterSub = FilterSubs::findOrFail($id);
+            $status = $request->input('status');
+            $statusUpdatedBy = $request->input('status_updated_by');
+
+            $filterSub->status = $status;
+            $filterSub->status_updated_by = $statusUpdatedBy;
+
+            $filterSub->save();
+
+            return response()->json(['filterSub' => $filterSub, 'message' => 'status updated successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to update status in filterSub: ' . $e->getMessage()], 500);
+            // return response()->json(['error' => 'Failed to update CreatedOnOdoo in Sales Order:'], 404);
+        }
+    }
+
+    public function updateNotes(Request $request, string $id)
+    {
+        try {
+
+            // $filterSub = FilterSubs::findOrFail($id);
+            // $filterSub = FilterSubs::with('contactAddress')->where('sales_order_no', $id)->first();
+            $filterSub = FilterSubs::findOrFail($id);
+            $remarks = $request->input('remarks');
+            $remarksUpdatedBy = $request->input('remarks_updated_by');
+
+            $filterSub->remarks = $remarks;
+            $filterSub->remarks_updated_by = $remarksUpdatedBy;
+
+            $filterSub->save();
+
+            return response()->json(['filterSub' => $filterSub, 'message' => 'notes updated successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to update notes in filterSub: ' . $e->getMessage()], 500);
+            // return response()->json(['error' => 'Failed to update CreatedOnOdoo in Sales Order:'], 404);
+        }
+    }
 }
