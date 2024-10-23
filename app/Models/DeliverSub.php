@@ -31,12 +31,24 @@ class DeliverSub extends Model
         return $this->hasOne(ServiceCode::class, 'id', 'service_code_id')->select('id', 'service_code', 'total_weight', 'number_of_items', 'total_cubit_volume');
     }
 
+
     public function deliveredOrDeliveryBookedBy()
     {
         return $this->hasOne(User::class, 'id', 'delivered_or_delivery_booked_by_id')->select('id', 'name');;
     }
-    // public function remarksUpdatedBy()
-    // {
-    //     return $this->hasOne(User::class, 'id', 'remarks_updated_by')->select('id', 'name');;
-    // }
+
+    public function serviceCodeUpdatedBy()
+    {
+        return $this->hasOne(User::class, 'id', 'service_code_updated_by_id')->select('id', 'name');;
+    }
+
+    public function requiredDeliveryUpdatedBy()
+    {
+        return $this->hasOne(User::class, 'id', 'required_delivery_updated_by_id')->select('id', 'name');;
+    }
+
+    public function odooCreatedBy()
+    {
+        return $this->hasOne(User::class, 'id', 'odoo_created_by_id')->select('id', 'name');;
+    }
 }

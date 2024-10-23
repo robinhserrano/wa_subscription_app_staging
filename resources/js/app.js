@@ -13,11 +13,11 @@ import Toast from 'primevue/toast';
 // Import FontAwesome core and icons
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faCoffee, faFilterCircleDollar, faUser, faUnlink } from '@fortawesome/free-solid-svg-icons'; // Import the icons you need
+import { faCoffee, faFilterCircleDollar, faUser, faUnlink, faFaucet, faToolbox } from '@fortawesome/free-solid-svg-icons'; // Import the icons you need
 import ConfirmationService from 'primevue/confirmationservice';
 import Tooltip from 'primevue/tooltip';
 // Add the icons to the library
-library.add(faFilterCircleDollar, faUser, faUnlink); // Add your icons here
+library.add(faFilterCircleDollar, faUser, faUnlink, faFaucet,faToolbox); // Add your icons here
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

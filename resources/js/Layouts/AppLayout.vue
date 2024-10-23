@@ -7,6 +7,32 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
+import Menu from 'primevue/menu';
+
+const menu = ref();
+const items = ref([
+    {
+        items: [
+            {
+                label: 'Filter Swap',
+                command: () => {
+                    router.get('confirmDeliveryRequirement');
+        }
+            },
+            {
+                label: 'Filter Subscription',
+                command: () => {
+                    router.get('confirmDeliveryFilterSubscription');
+                },
+            },
+        ]
+    }
+]);
+
+const toggle = (event) => {
+    menu.value.toggle(event);
+};
+
 
 defineProps({
     title: String,
@@ -47,24 +73,26 @@ const logout = () => {
                                 </Link>
                             </div>
 
-                            <!-- Navigation Links -->
-                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                             <!-- Navigation Links -->
+                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <NavLink :href="route('dashboard')"
                                     :active="route().current('dashboard')">
                                     Subscriptions to Enter
                                 </NavLink>
-                                <NavLink :href="route('confirmDeliveryRequirement')" :active="route().current('confirmDeliveryRequirement')">
+                                <NavLink :href="route('confirmDeliveryRequirement')" :active="route().current('confirmDeliveryRequirement') || route().current('confirmDeliveryFilterSubscription')" @mouseenter="toggle"  aria-haspopup="true" aria-controls="overlay_menu">
                                     Confirm Delivery Requirement
                                 </NavLink>
+<!-- 
+                                <Button type="button" icon="pi pi-ellipsis-v" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu" /> -->
+                                <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
                                 <NavLink :href="route('subscriptionsToDeliver')" :active="route().current('subscriptionsToDeliver')">
                                     Subscriptions to Deliver
                                 </NavLink>
                                 <NavLink :href="route('forUpselling')" :active="route().current('forUpselling')">
                                     For Upselling
                                 </NavLink>
-                            </div>
+                            </div>   
                         </div>
-
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
                             <div class="ms-3 relative">
                                 <!-- Teams Dropdown -->

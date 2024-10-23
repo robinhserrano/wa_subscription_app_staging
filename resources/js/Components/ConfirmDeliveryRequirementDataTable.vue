@@ -116,13 +116,18 @@
                     <span @click="handleCellClick(data)" class="cursor-pointer hover:underline">{{
                         data.sales_order_no }}
                     </span>
-                    <font-awesome-icon v-if="data.category === 'Subscription'" icon="fa-filter-circle-dollar"
-                        class="ml-2" />
+                    <div class="flex items-center">
+
                     <i v-if="data.delivered_or_delivery_booked && data.delivered_or_delivery_booked.value !== null"
-                        class="pi pi-truck ml-2"></i>
+                        class="pi pi-truck"  v-tooltip="`Delivery Booked`"></i>
                         <Avatar v-if="data.odoo_created_by_id"
-                            :label="avatarImage(data.odoo_created_by_id, users)" class="ml-2"
-                            style="background-color: #dee9fc; color: #1a2551" />
+                            class="ml-2"
+                            style="background-color: #ffffff; color: #ffffff" 
+                          v-tooltip="`Last updated by:\n${data.odoo_created_by.name}`">
+                            <img :src="data.odoo_created_by.profile_photo_url" alt="User Initials" />
+                        </Avatar>
+                    </div>
+
                 </template>
                 
             </Column>
@@ -173,8 +178,12 @@
                         </template>
                     </Select>
                     <Avatar v-if="data.required_delivery_updated_by_id"
-                            :label="avatarImage(data.required_delivery_updated_by_id, users)" class="ml-2"
-                            style="background-color: #dee9fc; color: #1a2551" />
+                            class="ml-2"
+                            style="background-color: #ffffff; color: #ffffff" 
+                          v-tooltip="`Last updated by:\n${data.required_delivery_updated_by.name}`">
+                            <img :src="data.required_delivery_updated_by.profile_photo_url" alt="User Initials" />
+                        </Avatar>
+
                         </div>
                 </template>
             </Column>
@@ -182,6 +191,11 @@
             </Column>
             <Column field="address" header="Address" style="min-width: 10rem"></Column>
             <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem"></Column>
+            <Column field="start_date" header="Start Date" style="min-width: 10rem">
+                <template #body="{ data }">
+                    {{ formatDate(data.start_date) }}
+                </template>
+            </Column>
             <Column field="due_date" header="Due Date" style="min-width: 10rem">
                 <template #body="{ data }">
                     {{ formatDate(data.due_date) }}
@@ -647,18 +661,4 @@ const denyAll = async () => {
     selectedItems.value = []
 };
 
-const avatarImage = (userId, users) => {
-    // Find the user with the given userId
-    const user = users.find(user => user.id === userId);
-
-    // If user is found, extract initials from their name
-    if (user) {
-        const initials = user.name.split(' ').map(word => word[0]).join('').toUpperCase();
-        const maxInitials = 2;
-        return initials.substring(0, maxInitials) || initials;
-    }
-
-    // If no user is found, return an empty string or a default value
-    return '';
-};
 </script>

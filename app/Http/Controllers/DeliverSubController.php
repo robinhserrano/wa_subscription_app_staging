@@ -13,7 +13,7 @@ class DeliverSubController extends Controller
     public function createDeliverSub(Request $request)
     {
         try {
-            $allowedDeliverSub = ['invoice_number', 'sales_order_no', 'customer_name', 'invoice_date', 'payment_status', 'address', 'state_id', 'activity_summary', 'phone_number', 'email', 'due_date', 'filter_sub_id',];
+            $allowedDeliverSub = ['invoice_number', 'sales_order_no', 'customer_name', 'invoice_date', 'payment_status', 'address', 'state_id', 'activity_summary', 'phone_number', 'email', 'due_date', 'filter_sub_id', 'start_date'];
             $filterSub  = FilterSubs::where('sales_order_no', $request['created_on_odoo'])->first();
             $deliveryData = Arr::only($filterSub->toArray(), $allowedDeliverSub);
 
@@ -84,7 +84,7 @@ class DeliverSubController extends Controller
                     default:
                         $deliverSub->service_code_id = null;
                 }
-            }else{
+            } else {
                 $deliverSub->delivered_or_delivery_booked = null;
                 $deliverSub->delivered_or_delivery_booked_by_id = null;
                 $deliverSub->service_code_id = null;
@@ -106,8 +106,10 @@ class DeliverSubController extends Controller
             $deliverSub = DeliverSub::findOrFail($id);
 
             $serviceCodeId = $request->input('service_code_id');
+            $serviceCodeUpdatedById = $request->input('service_code_updated_by_id');
             // $deliveredOrDeliveryBookedById = $request->input('delivered_or_delivery_booked_by_id');
             $deliverSub->service_code_id = $serviceCodeId;
+            $deliverSub->service_code_updated_by_id = $serviceCodeUpdatedById;
             // $filterSub->delivered_or_delivery_booked_by_id = $deliveredOrDeliveryBookedById;
             $deliverSub->save();
 

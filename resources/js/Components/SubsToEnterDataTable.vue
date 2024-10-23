@@ -95,8 +95,7 @@
                     <span @click="handleCellClick(data)" class="cursor-pointer hover:underline">{{
                         data.sales_order_no }}
                     </span>
-                    <font-awesome-icon v-if="data.category === 'Subscription'" icon="fa-filter-circle-dollar"
-                        class="ml-2" />
+                 
                     <i v-if="data.delivered_or_delivery_booked && data.delivered_or_delivery_booked.value !== null"
                         class="pi pi-truck ml-2"></i>
                 </template>
@@ -128,6 +127,11 @@
             </Column>
             <Column field="address" header="Address" style="min-width: 10rem"></Column>
             <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem"></Column>
+            <Column field="start_date" header="Start Date" style="min-width: 10rem">
+                <template #body="{ data }">
+                    {{ formatDate(data.start_date) }}
+                </template>
+            </Column>
             <Column field="due_date" header="Due Date" style="min-width: 10rem">
                 <template #body="{ data }">
                     {{ formatDate(data.due_date) }}
