@@ -173,9 +173,15 @@ Route::middleware([
                     ->orWhere('sales_order_no', 'like', "%{$search}%");
             });
         }
-
-
-        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')->has('orderLine', '>', 2)->orderBy($sortBy, $sortOrder)->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
+        
+        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
+            ->whereHas('orderLine', function ($query) {
+                $query->where('product', 'like', '%Filter Subscription%')
+                    ->orWhere('description', 'like', '%Filter Subscription%');
+            })
+            ->orderBy($sortBy, $sortOrder)
+            ->paginate($perPage, ['*'], 'page', $currentPage)
+            ->withQueryString();
 
         $filterSubs->transform(function ($filterSub) {
             $filterSub->hasCallOutService = $filterSub->orderLine->contains(function ($orderLine) {
@@ -285,7 +291,7 @@ Route::middleware([
         if ($categories = Request::input('categories', [])) {
             $query->whereIn('category', $categories);
         }
-        
+
         if ($stateId = Request::input('stateId', [])) {
             $query->whereIn('state_id', $stateId);
         }
