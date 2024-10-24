@@ -148,6 +148,30 @@ class DeliverSubController extends Controller
             $filterSub = DeliverSub::findOrFail($subId);
             $filterSub->required_delivery = 'Confirm';
             $filterSub->required_delivery_updated_by_id = $data['required_delivery_updated_by_id'];
+
+            $stageKeywords = collect(['1st Stage', '2nd Stage', '3rd Stage', '4th Stage', '5th Stage', '6th Stage']);
+
+            $stageCount = $filterSub->orderLine->filter(function ($orderLine) use ($stageKeywords) {
+                return $stageKeywords->contains(fn($keyword) => str_contains($orderLine->description, $keyword));
+            })->count();
+
+            switch ($stageCount) {
+                case 1:
+                    $filterSub->service_code_id = 1;
+                    break;
+                case 2:
+                case 3:
+                    $filterSub->service_code_id = 5;
+                    break;
+                case 4:
+                case 5:
+                case 6:
+                    $filterSub->service_code_id = 6;
+                    break;
+                default:
+                    $filterSub->service_code_id = null;
+            }
+
             $filterSub->save();
             $updatedFilterSubs++; // Count updated entries
         }
@@ -165,6 +189,11 @@ class DeliverSubController extends Controller
             $filterSub = DeliverSub::findOrFail($subId);
             $filterSub->required_delivery = 'Deny';
             $filterSub->required_delivery_updated_by_id = $data['required_delivery_updated_by_id'];
+
+            $filterSub->delivered_or_delivery_booked = null;
+            $filterSub->delivered_or_delivery_booked_by_id = null;
+            $filterSub->service_code_id = null;
+
             $filterSub->save();
             $updatedFilterSubs++; // Count updated entries
         }

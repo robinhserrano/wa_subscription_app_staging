@@ -128,17 +128,25 @@
                     <span @click="handleCellClick(data)" class="cursor-pointer hover:underline">{{
                         data.sales_order_no }}
                     </span>
+
                     <div class="flex items-center">
+                    <font-awesome-icon v-if="data.hasCallOutService" :icon="['fas', 'toolbox']" v-tooltip="`Filter Sub (Filter + Call Out Service)`" />
+                  <font-awesome-icon 
+                  
+                  v-else :icon="['fas', 'faucet']" v-tooltip="`Filter Sub (Filter Only)`"/>
+
                     <i v-if="data.delivered_or_delivery_booked && data.delivered_or_delivery_booked.value !== null"
                         class="pi pi-truck ml-2"></i>
 
+                        
                         <Avatar v-if="data.odoo_created_by_id"
                             class="ml-2"
                             style="background-color: #ffffff; color: #ffffff" 
                           v-tooltip="`Last updated by:\n${data.odoo_created_by.name}`">
                             <img :src="data.odoo_created_by.profile_photo_url" alt="User Initials" />
                         </Avatar>
-                    </div>
+
+                        </div>
                 </template>
             </Column>
             <Column field="" header="Delivered or Delivery Booked" style="min-width: 10rem">

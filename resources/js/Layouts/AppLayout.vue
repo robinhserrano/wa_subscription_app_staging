@@ -9,8 +9,9 @@ import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import Menu from 'primevue/menu';
 
-const menu = ref();
-const items = ref([
+const menuConfirmDelivery = ref();
+const menuSubsToDeliver = ref();
+const itemsConfirmDelivery = ref([
     {
         items: [
             {
@@ -29,8 +30,33 @@ const items = ref([
     }
 ]);
 
-const toggle = (event) => {
-    menu.value.toggle(event);
+
+const itemsSubsToDeliver = ref([
+    {
+        items: [
+            {
+                label: 'Filter Swap',
+                command: () => {
+                    router.get('subscriptionsToDeliver');
+        }
+            },
+            {
+                label: 'Filter Subscription',
+                command: () => {
+                    router.get('subscriptionsToDeliverFilterSubscription');
+                },
+            },
+        ]
+    }
+]);
+
+
+const toggleConfirmDelivery = (event) => {
+    menuConfirmDelivery.value.toggle(event);
+};
+
+const toggleSubsToDeliver = (event) => {
+    menuSubsToDeliver.value.toggle(event);
 };
 
 
@@ -79,15 +105,14 @@ const logout = () => {
                                     :active="route().current('dashboard')">
                                     Subscriptions to Enter
                                 </NavLink>
-                                <NavLink :href="route('confirmDeliveryRequirement')" :active="route().current('confirmDeliveryRequirement') || route().current('confirmDeliveryFilterSubscription')" @mouseenter="toggle"  aria-haspopup="true" aria-controls="overlay_menu">
+                                <NavLink :href="route('confirmDeliveryRequirement')" :active="route().current('confirmDeliveryRequirement') || route().current('confirmDeliveryFilterSubscription')" @mouseenter="toggleConfirmDelivery"  aria-haspopup="true" aria-controls="overlay_menu">
                                     Confirm Delivery Requirement
                                 </NavLink>
-<!-- 
-                                <Button type="button" icon="pi pi-ellipsis-v" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu" /> -->
-                                <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
-                                <NavLink :href="route('subscriptionsToDeliver')" :active="route().current('subscriptionsToDeliver')">
+                                <Menu ref="menuConfirmDelivery" id="overlay_menu" :model="itemsConfirmDelivery" :popup="true" />
+                                <NavLink :href="route('subscriptionsToDeliver')" :active="route().current('subscriptionsToDeliver') || route().current('subscriptionsToDeliverFilterSubscription')" @mouseenter="toggleSubsToDeliver"  aria-haspopup="true" aria-controls="overlay_menu">
                                     Subscriptions to Deliver
                                 </NavLink>
+                                <Menu ref="menuSubsToDeliver" id="overlay_menu" :model="itemsSubsToDeliver" :popup="true" />
                                 <NavLink :href="route('forUpselling')" :active="route().current('forUpselling')">
                                     For Upselling
                                 </NavLink>
