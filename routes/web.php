@@ -122,13 +122,20 @@ Route::middleware([
             });
         }
 
-        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
+        $filterSubsQuery = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
             ->whereDoesntHave('orderLine', function ($query) {
                 $query->where('product', 'like', '%Filter Subscription%')
                     ->orWhere('description', 'like', '%Filter Subscription%');
             })
-            ->orderBy($sortBy, $sortOrder)
-            ->paginate($perPage, ['*'], 'page', $currentPage)
+            ->orderBy($sortBy, $sortOrder);
+
+
+        $filterSubIds = $filterSubsQuery->pluck('id')->map(function ($id) {
+            return ['id' => $id];
+        })->values()->all();
+
+        // Create a separate variable for the paginated result
+        $filterSubs = $filterSubsQuery->paginate($perPage, ['*'], 'page', $currentPage)
             ->withQueryString();
 
         $stateIds = Cache::remember('state_ids', 60, function () {
@@ -136,7 +143,7 @@ Route::middleware([
         });
 
         return Inertia::render('ConfirmDeliveryRequirement', [
-            'filterSubIds' => $query->pluck('id'),
+            'filterSubIds' => $filterSubIds,
             'filterSubs' =>  $filterSubs,
             'stateIds' => $stateIds,
             'users' => User::all(),
@@ -187,13 +194,19 @@ Route::middleware([
             });
         }
 
-        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
+        $filterSubsQuery = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
             ->whereHas('orderLine', function ($query) {
                 $query->where('product', 'like', '%Filter Subscription%')
                     ->orWhere('description', 'like', '%Filter Subscription%');
             })
-            ->orderBy($sortBy, $sortOrder)
-            ->paginate($perPage, ['*'], 'page', $currentPage)
+            ->orderBy($sortBy, $sortOrder);
+
+        $filterSubIds = $filterSubsQuery->pluck('id')->map(function ($id) {
+            return ['id' => $id];
+        })->values()->all();
+
+        // Create a separate variable for the paginated result
+        $filterSubs = $filterSubsQuery->paginate($perPage, ['*'], 'page', $currentPage)
             ->withQueryString();
 
         $filterSubs->transform(function ($filterSub) {
@@ -208,7 +221,7 @@ Route::middleware([
         });
 
         return Inertia::render('ConfirmDeliveryFilterSubscription', [
-            'filterSubIds' => $query->pluck('id'),
+            'filterSubIds' => $filterSubIds,
             'filterSubs' =>  $filterSubs,
             'stateIds' => $stateIds,
             'users' => User::all(),
@@ -254,12 +267,19 @@ Route::middleware([
             });
         }
 
-        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'serviceCode', 'deliveredOrDeliveryBookedBy', 'serviceCodeUpdatedBy', 'odooCreatedBy')->whereDoesntHave('orderLine', function ($query) {
+        $filterSubsQuery =  $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'serviceCode', 'deliveredOrDeliveryBookedBy', 'serviceCodeUpdatedBy', 'odooCreatedBy')->whereDoesntHave('orderLine', function ($query) {
             $query->where('product', 'like', '%Filter Subscription%')
                 ->orWhere('description', 'like', '%Filter Subscription%');
         })
-            ->orderBy($sortBy, $sortOrder)
-            ->paginate($perPage, ['*'], 'page', $currentPage)
+            ->orderBy($sortBy, $sortOrder);
+
+
+        $filterSubIds = $filterSubsQuery->pluck('id')->map(function ($id) {
+            return ['id' => $id];
+        })->values()->all();
+
+        // Create a separate variable for the paginated result
+        $filterSubs = $filterSubsQuery->paginate($perPage, ['*'], 'page', $currentPage)
             ->withQueryString();
 
         $stateIds = Cache::remember('state_ids', 60, function () {
@@ -272,7 +292,7 @@ Route::middleware([
         });
 
         return Inertia::render('SubscriptionsToDeliver', [
-            'filterSubIds' => $query->pluck('id'),
+            'filterSubIds' => $filterSubIds,
             'filterSubs' =>  $filterSubs,
             'stateIds' => $stateIds,
             'serviceCodes' => $serviceCodes,
@@ -318,12 +338,18 @@ Route::middleware([
             });
         }
 
-        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'serviceCode', 'deliveredOrDeliveryBookedBy', 'serviceCodeUpdatedBy', 'odooCreatedBy')->whereHas('orderLine', function ($query) {
+        $filterSubsQuery = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'serviceCode', 'deliveredOrDeliveryBookedBy', 'serviceCodeUpdatedBy', 'odooCreatedBy')->whereHas('orderLine', function ($query) {
             $query->where('product', 'like', '%Filter Subscription%')
                 ->orWhere('description', 'like', '%Filter Subscription%');
         })
-            ->orderBy($sortBy, $sortOrder)
-            ->paginate($perPage, ['*'], 'page', $currentPage)
+            ->orderBy($sortBy, $sortOrder);
+
+        $filterSubIds = $filterSubsQuery->pluck('id')->map(function ($id) {
+            return ['id' => $id];
+        })->values()->all();
+
+        // Create a separate variable for the paginated result
+        $filterSubs = $filterSubsQuery->paginate($perPage, ['*'], 'page', $currentPage)
             ->withQueryString();
 
         $filterSubs->transform(function ($filterSub) {
@@ -332,6 +358,7 @@ Route::middleware([
             });
             return $filterSub;
         });
+
 
         $stateIds = Cache::remember('state_ids', 60, function () {
             return StateId::all()->sortByDesc('state_id');
@@ -343,7 +370,7 @@ Route::middleware([
         });
 
         return Inertia::render('SubscriptionsToDeliverFilterSubscription', [
-            'filterSubIds' => $query->pluck('id'),
+            'filterSubIds' => $filterSubIds,
             'filterSubs' =>  $filterSubs,
             'stateIds' => $stateIds,
             'serviceCodes' => $serviceCodes,

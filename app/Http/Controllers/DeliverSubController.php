@@ -219,6 +219,21 @@ class DeliverSubController extends Controller
         return response()->json(compact('message'), 200); // Created
     }
 
+    public function getDeliverySubByIds(Request $request)
+    {
+
+        // return $request;
+        try {
+            $data = json_decode($request->getContent(), true); // Assuming JSON data
+            $ids = array_column($data['deliverSubIds'], 'id');
+            $deliverSubs = DeliverSub::with('orderLine','contactAddress','rootSalesOrder','serviceCode')->whereIn('id', $ids)->get();
+
+            return response()->json(['deliverSubs' => $deliverSubs, 'message' => 'Deliver subs retrieved successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Deliver subs not found'], 404);
+        }
+    }
+
     public function destroy(string $id)
     {
         try {

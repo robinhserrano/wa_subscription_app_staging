@@ -71,7 +71,11 @@
             <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
         </Drawer>
         <!-- {{ props.serviceCodes }} -->
-        <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button>
+        <Button v-if="selectedItems.length" class="ml-4" outlined> <p class="font-bold">
+            {{ selectedItems.length }} 
+        </p>selected <Button v-if="selectedItems.length < filterSubs.total" :label="`Select all ${deliverSubIds.length}`" @click="selectAll(deliverSubIds)"
+        icon="pi pi-arrow-right" class="ml-4" severity="info" ></Button></Button>
+        <Button v-if="selectedItems.length" :label="`Export as Excel (${selectedItems.length})`" @click="downloadCSV(selectedItems)" class="ml-4"></Button>
         <Button v-if="selectedItems.length" :label="`Mark All As Delivery Booked (${selectedItems.length})`"
             @click="markAllAsDeliveryBooked" icon="pi pi-truck" class="ml-4"></Button>
         <!-- 
@@ -347,7 +351,7 @@ const handleUnlink = (rootSalesOrder, newSalesOrder, newSalesOrderId) =>   {
 let props = defineProps({
     filterSubs: Object,
     stateIds: Object,
-    filterSubIds: Object,
+    deliverSubIds: Object,
     currentUser: Object,
     users: Object,
     serviceCodes: Object,
@@ -730,7 +734,8 @@ const getFilteredData = (data) => {
     // );
 }
 
-const downloadCSV = () => {
+
+const downloadCSV = async (selectedItems) => {
     // Define custom headers and corresponding columns
     const headers = {
         'Record Type': 'recordType',//A
@@ -752,19 +757,26 @@ const downloadCSV = () => {
         'Total Weight': 'totalWeight',
         'Total Cubic Volume': 'totalCubicVolume',
         'Authority to Leave': 'authorityToLeave', //S
-        //O
-        //P
-        //Q
-        //R
-        //'Authority to Leave': Y (Default) //S
     };
 
+    try {
 
+        
+const response = await axios.post('/api/getDeliverySubByIds', {
+                 deliverSubIds: selectedItems
+                
+            });
+
+        if (response.status === 200) {
+            console.log(response.data)
+            console.log(response.data.deliverSubs)
+            console.log('haha')
     // Map JSON data to include only selected columns with custom headers
-    const mappedData = selectedItems.value.map(item => {
+    const mappedData = response.data.deliverSubs.map(item => {
         // console.log('A')
         // console.log(item['address'])
         // console.log(item['contact_address'].complete_address)
+        console.log('batmannnn')
         console.log(item)
         console.log(item['contact_address'])
         item.recordType = 'C'
@@ -810,6 +822,12 @@ const downloadCSV = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+} else {
+            toast.error('Error: Unable to fetch delivery subscriptions.');
+        }
+    } catch (error) {
+         toast.error('Error: ' + (error.response?.data?.message || 'Network Error'));
+    }
 };
 
 function compareAddresses(originalAddress, contactAddress,
@@ -828,11 +846,15 @@ function compareAddresses(originalAddress, contactAddress,
     return originalAddress;
 }
 
+const selectAll = async (deliverSubIds) => {
+    selectedItems.value = deliverSubIds
+};
+
 const markAllAsDeliveryBooked = async () => {
     var selectedItemIds = selectedItems.value.map(e => e.id);
     console.log(selectedItemIds)
     const data = JSON.stringify({
-        filterSubIds: selectedItemIds,
+        deliverSubIds: selectedItemIds,
         delivered_or_delivery_booked_by_id: props.currentUser.id
     });
     const response = await axios.post('/api/bulkConfirmDeliveryBooked', data, {

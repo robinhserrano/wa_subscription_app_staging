@@ -60,6 +60,7 @@ Route::post('/bulkConfirmDeliverSubs', [DeliverSubController::class, 'bulkConfir
 Route::post('/bulkDenyDeliverSubs', [DeliverSubController::class, 'bulkDenyDeliverSubs']);
 Route::post('/bulkConfirmDeliveryBooked', [DeliverSubController::class, 'bulkConfirmDeliveryBooked']);
 Route::delete('deliverSub/{id}',  [DeliverSubController::class, 'destroy']);
+Route::post('/getDeliverySubByIds', [DeliverSubController::class, 'getDeliverySubByIds']);
 
 Route::post('/bulkStateIdStore', [StateIdController::class, 'bulkStateIdStore']);
 

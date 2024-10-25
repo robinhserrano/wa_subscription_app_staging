@@ -63,8 +63,11 @@
             <p class="mt-4 mb-2 text-xl font-bold">Date Range</p>
             <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
         </Drawer>
-        <!-- <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV" class="ml-4"></Button> -->
-       
+        <Button v-if="selectedItems.length" class="ml-4" outlined> <p class="font-bold">
+            {{ selectedItems.length }} 
+        </p>selected <Button v-if="selectedItems.length < filterSubs.total" :label="`Select all ${deliverSubIds.length}`" @click="selectAll(deliverSubIds)"
+        icon="pi pi-arrow-right" class="ml-4" severity="info" ></Button></Button>
+        
         <Button v-if="selectedItems.length" :label="`Confirm All (${selectedItems.length})`" @click="confirmAll"
             icon="pi pi-verified" class="ml-4"></Button>
 
@@ -623,7 +626,6 @@ const downloadCSV = () => {
 
 };
 
-
 const confirmAll = async () => {
     var selectedItemIds = selectedItems.value.map(e => e.id);
     console.log(selectedItemIds)
@@ -640,6 +642,10 @@ const confirmAll = async () => {
     fetchData()
 
     selectedItems.value = []
+};
+
+const selectAll = async (deliverSubIds) => {
+    selectedItems.value = deliverSubIds
 };
 
 const denyAll = async () => {
