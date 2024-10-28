@@ -458,7 +458,7 @@ const fetchData = async () => {
     try {
         console.log('fetch data page')
         console.log(currentPage.value)
-        const response = await router.get('/subscriptionsToDeliver', {
+        const response = await router.get('/subscriptionsToDeliverFilterSubscription', {
             page: currentPage.value,
             search: search.value,
             dates: dates.value,
@@ -487,7 +487,7 @@ const debouncedFetchData = debounce(async () => {
     try {
         console.log('fetch data page');
         console.log(currentPage.value);
-        const response = await router.get('/subscriptionsToDeliver', {
+        const response = await router.get('/subscriptionsToDeliverFilterSubscription', {
             page: currentPage.value,
             search: search.value,
             dates: dates.value,
