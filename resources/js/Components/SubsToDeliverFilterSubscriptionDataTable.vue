@@ -792,7 +792,7 @@ const response = await axios.post('/api/getDeliverySubByIds', {
         item.serviceCode = item.service_code?.service_code //'TB1'
         item.numberOfItems = item.service_code?.number_of_items
         item.totalWeight =  item.service_code?.total_weight
-        item.totalCubicVolume =  item.service_code?.total_cubic_volume
+        item.totalCubicVolume =  item.service_code?.total_cubit_volume
         item.authorityToLeave = 'Y'
 
         let newItem = {};

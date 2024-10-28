@@ -13,7 +13,7 @@ class DeliverSubController extends Controller
     public function createDeliverSub(Request $request)
     {
         try {
-            $allowedDeliverSub = ['invoice_number', 'sales_order_no', 'customer_name', 'invoice_date', 'payment_status', 'address', 'state_id', 'activity_summary', 'phone_number', 'email', 'due_date', 'filter_sub_id', 'start_date'];
+            $allowedDeliverSub = ['invoice_number', 'sales_order_no', 'customer_name', 'invoice_date', 'payment_status', 'address', 'state_id', 'activity_summary', 'phone', 'email', 'due_date', 'filter_sub_id', 'start_date'];
             $filterSub  = FilterSubs::where('sales_order_no', $request['created_on_odoo'])->first();
             $deliveryData = Arr::only($filterSub->toArray(), $allowedDeliverSub);
 

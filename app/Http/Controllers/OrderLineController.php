@@ -34,9 +34,9 @@ class OrderLineController extends Controller
         // try {
         //     // Code that might throw an exception
 
-        //     $allowedOrderLineOrderLine = ['invoice_number', 'sales_order_no', 'customer_name', 'invoice_date', 'payment_status', 'address', 'state_id', 'activity_summary', 'phone_number', 'email', 'due_date'];
+        //     $allowedOrderLineOrderLine = ['invoice_number', 'sales_order_no', 'customer_name', 'invoice_date', 'payment_status', 'address', 'state_id', 'activity_summary', 'phone', 'email', 'due_date'];
 
-        //     $orderLine = ['invoice_number' => $request['invoice_number'], 'sales_order_no'  => $request['sales_order_no'], 'customer_name' => $request['customer_name'], 'invoice_date' => $request['invoice_date'], 'payment_status' => $request['payment_status'], 'address' => $request['address'], 'state_id' => $request['state_id'], 'activity_summary' => $request['activity_summary'], 'phone_number' => $request['phone_number'], 'email' => $request['email'], 'due_date' => $request['due_date']];
+        //     $orderLine = ['invoice_number' => $request['invoice_number'], 'sales_order_no'  => $request['sales_order_no'], 'customer_name' => $request['customer_name'], 'invoice_date' => $request['invoice_date'], 'payment_status' => $request['payment_status'], 'address' => $request['address'], 'state_id' => $request['state_id'], 'activity_summary' => $request['activity_summary'], 'phone' => $request['phone'], 'email' => $request['email'], 'due_date' => $request['due_date']];
 
         //     $existingorderLine = OrderLine::where('invoice_number', $orderLine['invoice_number'])
         //         ->where('sales_order_no', $orderLine['sales_order_no'])
