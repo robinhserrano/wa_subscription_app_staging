@@ -9,6 +9,7 @@ let props = defineProps({
     stateIds: Object,
     activitySummaries: Object,
     filterSubIds: Object,
+    filters: Object,
 });
 
 </script>
@@ -17,7 +18,7 @@ let props = defineProps({
     <AppLayout title="Dashboard">
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
             <SubsToEnterDataTable :filterSubs="filterSubs" :stateIds="stateIds" :activitySummaries="activitySummaries"
-                :filterSubIds="filterSubIds" :currentUser="page.props.auth.user" />
+                :filterSubIds="filterSubIds" :filters="filters" :currentUser="page.props.auth.user" />
         </div>
     </AppLayout>
 </template>

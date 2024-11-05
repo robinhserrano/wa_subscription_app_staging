@@ -67,8 +67,6 @@
                     :value="category.name" />
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
-            <p class="mt-4 mb-2 text-xl font-bold">Date Range</p>
-            <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
         </Drawer>
         <!-- {{ props.serviceCodes }} -->
         <Button v-if="selectedItems.length" class="ml-4" outlined> <p class="font-bold">
@@ -310,6 +308,8 @@ import axios from 'axios';
 import { useToast } from 'primevue/usetoast'
 import * as XLSX from 'xlsx';
 import 'primeicons/primeicons.css'
+import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
+
 import ConfirmDialog from 'primevue/confirmdialog';
 import { useConfirm } from "primevue/useconfirm";
 import Avatar from 'primevue/avatar';
@@ -347,10 +347,10 @@ let props = defineProps({
     currentUser: Object,
     users: Object,
     serviceCodes: Object,
+    filters: Object,
 });
 
 const selectedItems = ref([]);
-const filters = ref();
 const loading = ref(true);
 const currentPage = ref(1);
 const totalRecord = ref(0);
@@ -366,17 +366,11 @@ const selectedSalesOrderLines = ref();
 const selectedCustomerName = ref();
 const selectedCustomerAddress = ref();
 const selectedCustomerContactAddress = ref([]);
-
 const serviceCodeDropdownOptions = ref([]);
-
-
-
-
 const selectedType = ref()
 const categoryTypes = ref([{ "id": 1, "name": "Subscription", },
     //  { "id": 2, "name": "1st Stage Filter Only", },
 ]);
-
 const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter" },
 { "id": 2, "name": "Independent 3 + 3 Due for Change" },
 { "id": 3, "name": "Independent 3 + 3 Expires" },
@@ -386,30 +380,22 @@ const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter" },
 { "id": 7, "name": "3 Stage Filter Expires" },
 { "id": 8, "name": "Final Date to Order Filters for Warranty Extension" },
 ]);
-
 const dropdownRequireDelivery = ref([
-
     { name: 'Confirm', value: 'Confirm' },
     { name: 'Deny', value: 'Deny' },
     { name: '- Unselect -', value: null },
 ]);
-
-
-
 const dropdownDeliveredOrBooked = ref([
     { name: 'Delivery Booked', value: 'Delivery Booked' },
     { name: '- Unselect -', value: null },
 ]);
-
 const dates = ref([]);
-
 const selectedSalesOrder = ref();
-
 const selectedStateIds = ref([])
 const selectedActivitySummary = ref([])
 const selectedCategories = ref([])
 const selectedRowCount = ref(100)
-
+const filters = ref();
 
 onMounted(() => {
     loading.value = false;
@@ -431,6 +417,14 @@ onMounted(() => {
     console.log(props.serviceCodes)
     console.log('zzzzzzzzzzz')
 });
+
+const initFilters = () => {
+    filters.value = {
+        start_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
+        due_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
+    };
+};
+initFilters();
 
 const handlePageChange = (event) => {
     selectedRowCount.value = event.rows
@@ -458,6 +452,7 @@ const fetchData = async () => {
             activitySummary: selectedActivitySummary.value,
             categories: selectedCategories.value,
             perPage: selectedRowCount.value,
+            filters: JSON.stringify(filters.value), 
         }, {
             preserveState: true,
             replace: false,
@@ -487,6 +482,7 @@ const debouncedFetchData = debounce(async () => {
             activitySummary: selectedActivitySummary.value,
             categories: selectedCategories.value,
             perPage: selectedRowCount.value,
+            filters: JSON.stringify(filters.value), 
         }, {
             preserveState: true,
             replace: false,
@@ -717,7 +713,13 @@ watch(selectedCategories, async (newCategory) => {
 });
 
 
-
+watch(filters, async (newFilters) => {
+    console.log('changed date, load fetch data 1')
+    if (newFilters) {
+        console.log('changed date, load fetch data 2')
+        fetchData()
+    }
+});
 
 const getFilteredData = (data) => {
     return data

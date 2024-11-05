@@ -82,7 +82,7 @@
 </Dialog>
         <DataTable v-model:selection="selectedItems" :value="getFilteredData(
             filterSubs.data)" lazy :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id"
-            filterDisplay="menu">
+            filterDisplay="menu" v-model:filters="filters">
             <template #header>
                 <div class="flex justify-between">
                     <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -193,14 +193,21 @@
             </Column>
             <Column field="address" header="Address" style="min-width: 10rem"></Column>
             <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem"></Column>
-            <Column field="start_date" header="Start Date" style="min-width: 10rem">
+            <Column field="start_date" header="Start Date" style="min-width: 10rem" filterField="start_date" dataType="date">
                 <template #body="{ data }">
                     {{ formatDate(data.start_date) }}
                 </template>
+                <template #filter="{ filterModel }">
+                    <DatePicker v-model="filterModel.value" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy" />
+                </template>
             </Column>
-            <Column field="due_date" header="Due Date" style="min-width: 10rem">
+            <Column field="due_date" header="Due Date" style="min-width: 10rem" filterField="due_date" dataType="date" >
                 <template #body="{ data }">
                     {{ formatDate(data.due_date) }}
+                </template>
+
+                <template #filter="{ filterModel }">
+                    <DatePicker v-model="filterModel.value" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy" />
                 </template>
             </Column>
             <Column field="invoice_number" header="Invoice Number" style="min-width: 10rem"></Column>
@@ -245,6 +252,7 @@ import axios from 'axios';
 import { useToast } from 'primevue/usetoast'
 import * as XLSX from 'xlsx';
 import 'primeicons/primeicons.css'
+import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import Dialog from 'primevue/dialog';
 import Textarea from 'primevue/textarea';
 import { computed } from 'vue';
@@ -307,7 +315,7 @@ const selectedStateIds = ref([])
 const selectedActivitySummary = ref([])
 const selectedCategories = ref([])
 const selectedRowCount = ref(100)
-
+const filters = ref();
 
 onMounted(() => {
     loading.value = false;
@@ -315,6 +323,14 @@ onMounted(() => {
     salesQuotations.value = props.salesQuotations
     stateIds.value = props.stateIds
 });
+
+const initFilters = () => {
+    filters.value = {
+        start_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
+        due_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
+    };
+};
+initFilters();
 
 const handlePageChange = (event) => {
     selectedRowCount.value = event.rows
@@ -342,6 +358,7 @@ const fetchData = async () => {
             activitySummary: selectedActivitySummary.value,
             categories: selectedCategories.value,
             perPage: selectedRowCount.value,
+            filters: JSON.stringify(filters.value), 
         }, {
             preserveState: true,
             replace: false,
@@ -371,6 +388,7 @@ const debouncedFetchData = debounce(async () => {
             activitySummary: selectedActivitySummary.value,
             categories: selectedCategories.value,
             perPage: selectedRowCount.value,
+            filters: JSON.stringify(filters.value), 
         }, {
             preserveState: true,
             replace: false,
@@ -508,6 +526,16 @@ watch(selectedCategories, async (newCategory) => {
 
     }
 });
+
+watch(filters, async (newFilters) => {
+    console.log('changed date, load fetch data 1')
+    if (newFilters) {
+        console.log('changed date, load fetch data 2')
+        fetchData()
+
+    }
+});
+
 
 const getFilteredData = (data) => {
     return data

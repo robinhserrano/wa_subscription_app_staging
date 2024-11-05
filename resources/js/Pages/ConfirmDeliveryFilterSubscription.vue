@@ -9,6 +9,7 @@ let props = defineProps({
     filterSubIds: Object,
     stateIds: Object,
     users: Object,
+    filters: Object,
 });
 
 </script>
@@ -17,7 +18,7 @@ let props = defineProps({
     <AppLayout title="confirmDeliveryFilterSubscription">
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
             <ConfirmDeliveryFilterSubscriptionDataTable :filterSubs="filterSubs" :stateIds="stateIds"
-                :deliverSubIds="filterSubIds" :currentUser="page.props.auth.user" :users="users" />
+                :deliverSubIds="filterSubIds" :filters="filters" :currentUser="page.props.auth.user" :users="users" />
         </div>
     </AppLayout>
 </template>

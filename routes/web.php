@@ -12,6 +12,25 @@ use Illuminate\Support\Facades\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
+
+function applyDateConstraints($query, $constraints, $dateField)
+{
+    $operators = [
+        'dateBefore' => '<',
+        'dateAfter' => '>',
+        'dateIs' => '=',
+        'dateIsNot' => '!=',
+    ];
+
+    foreach ($constraints as $constraint) {
+        if ($constraint['value'] !== null && isset($operators[$constraint['matchMode']])) {
+            $adjustedValue = Carbon::parse($constraint['value'])->addHours(8);
+
+            $query->where($dateField, $operators[$constraint['matchMode']], $adjustedValue);
+        }
+    }
+}
+
 Route::get('/', function () {
     return Inertia::render('Auth/Login', [
         'canLogin' => Route::has('login'),
@@ -31,19 +50,16 @@ Route::middleware([
         $perPage = (int) Request::input('perPage', 100);
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
-        $dates = Request::input('dates', []);
+        $filters = json_decode(Request::input('filters'), true);
 
-        $query = FilterSubs::query(); //->whereNull('created_on_odoo');
+        $query = FilterSubs::query();
 
-        if (!empty($dates)) {
-            $startDate = Carbon::parse($dates[0])->startOfDay();
-            $query->where('due_date', '>=', $startDate);
+        if (!empty($filters['start_date']['constraints'])) {
+            applyDateConstraints($query, $filters['start_date']['constraints'], 'start_date');
+        }
 
-            if (isset($dates[1])) {
-                $endDate = Carbon::parse($dates[1])->endOfDay();
-                $query->where('due_date', '<=', $endDate);
-            }
-            $query->orderBy('customer_name', 'asc');
+        if (!empty($filters['due_date']['constraints'])) {
+            applyDateConstraints($query, $filters['due_date']['constraints'], 'due_date');
         }
 
         if ($categories = Request::input('categories', [])) {
@@ -75,6 +91,7 @@ Route::middleware([
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' =>  $filterSubs,
             'stateIds' => $stateIds,
+            'filters' => $filters,
         ]);
     })->name('dashboard');
     Route::get('/confirmDeliveryRequirement', function () {
@@ -82,8 +99,7 @@ Route::middleware([
         $perPage = (int) Request::input('perPage', 100);
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
-        $dates = Request::input('dates', []);
-
+        $filters = json_decode(Request::input('filters'), true);
         $query = DeliverSub::query(); //->whereNull('created_on_odoo');
         // $query = DeliverSub::query()
         //     ->where(function ($query) {
@@ -92,15 +108,12 @@ Route::middleware([
         //     });
 
 
-        if (!empty($dates)) {
-            $startDate = Carbon::parse($dates[0])->startOfDay();
-            $query->where('due_date', '>=', $startDate);
+        if (!empty($filters['start_date']['constraints'])) {
+            applyDateConstraints($query, $filters['start_date']['constraints'], 'start_date');
+        }
 
-            if (isset($dates[1])) {
-                $endDate = Carbon::parse($dates[1])->endOfDay();
-                $query->where('due_date', '<=', $endDate);
-            }
-            $query->orderBy('customer_name', 'asc');
+        if (!empty($filters['due_date']['constraints'])) {
+            applyDateConstraints($query, $filters['due_date']['constraints'], 'due_date');
         }
 
         if ($categories = Request::input('categories', [])) {
@@ -122,20 +135,13 @@ Route::middleware([
             });
         }
 
-        $filterSubsQuery = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
+        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
             ->whereDoesntHave('orderLine', function ($query) {
                 $query->where('product', 'like', '%Filter Subscription%')
                     ->orWhere('description', 'like', '%Filter Subscription%');
             })
-            ->orderBy($sortBy, $sortOrder);
-
-
-        $filterSubIds = $filterSubsQuery->pluck('id')->map(function ($id) {
-            return ['id' => $id];
-        })->values()->all();
-
-        // Create a separate variable for the paginated result
-        $filterSubs = $filterSubsQuery->paginate($perPage, ['*'], 'page', $currentPage)
+            ->orderBy($sortBy, $sortOrder)
+            ->paginate($perPage, ['*'], 'page', $currentPage)
             ->withQueryString();
 
         $stateIds = Cache::remember('state_ids', 60, function () {
@@ -143,10 +149,11 @@ Route::middleware([
         });
 
         return Inertia::render('ConfirmDeliveryRequirement', [
-            'filterSubIds' => $filterSubIds,
+            'filterSubIds' => $query->pluck('id'),
             'filterSubs' =>  $filterSubs,
             'stateIds' => $stateIds,
             'users' => User::all(),
+            'filters' => $filters,
         ]);
     })->name('confirmDeliveryRequirement');
     Route::get('/confirmDeliveryFilterSubscription', function () {
@@ -154,25 +161,16 @@ Route::middleware([
         $perPage = (int) Request::input('perPage', 100);
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
-        $dates = Request::input('dates', []);
+        $filters = json_decode(Request::input('filters'), true);
 
         $query = DeliverSub::query(); //->whereNull('created_on_odoo');
-        // $query = DeliverSub::query()
-        //     ->where(function ($query) {
-        //         $query->whereNull('required_delivery')
-        //             ->orWhere('required_delivery', '!=', 'Confirm');
-        //     });
 
+        if (!empty($filters['start_date']['constraints'])) {
+            applyDateConstraints($query, $filters['start_date']['constraints'], 'start_date');
+        }
 
-        if (!empty($dates)) {
-            $startDate = Carbon::parse($dates[0])->startOfDay();
-            $query->where('due_date', '>=', $startDate);
-
-            if (isset($dates[1])) {
-                $endDate = Carbon::parse($dates[1])->endOfDay();
-                $query->where('due_date', '<=', $endDate);
-            }
-            $query->orderBy('customer_name', 'asc');
+        if (!empty($filters['due_date']['constraints'])) {
+            applyDateConstraints($query, $filters['due_date']['constraints'], 'due_date');
         }
 
         if ($categories = Request::input('categories', [])) {
@@ -194,19 +192,13 @@ Route::middleware([
             });
         }
 
-        $filterSubsQuery = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
+        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
             ->whereHas('orderLine', function ($query) {
                 $query->where('product', 'like', '%Filter Subscription%')
                     ->orWhere('description', 'like', '%Filter Subscription%');
             })
-            ->orderBy($sortBy, $sortOrder);
-
-        $filterSubIds = $filterSubsQuery->pluck('id')->map(function ($id) {
-            return ['id' => $id];
-        })->values()->all();
-
-        // Create a separate variable for the paginated result
-        $filterSubs = $filterSubsQuery->paginate($perPage, ['*'], 'page', $currentPage)
+            ->orderBy($sortBy, $sortOrder)
+            ->paginate($perPage, ['*'], 'page', $currentPage)
             ->withQueryString();
 
         $filterSubs->transform(function ($filterSub) {
@@ -221,10 +213,11 @@ Route::middleware([
         });
 
         return Inertia::render('ConfirmDeliveryFilterSubscription', [
-            'filterSubIds' => $filterSubIds,
+            'filterSubIds' => $query->pluck('id'),
             'filterSubs' =>  $filterSubs,
             'stateIds' => $stateIds,
             'users' => User::all(),
+            'filters' => $filters,
         ]);
     })->name('confirmDeliveryFilterSubscription');
 
@@ -233,19 +226,16 @@ Route::middleware([
         $perPage = (int) Request::input('perPage', 100);
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
-        $dates = Request::input('dates', []);
+        $filters = json_decode(Request::input('filters'), true);
 
         $query = DeliverSub::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
 
-        if (!empty($dates)) {
-            $startDate = Carbon::parse($dates[0])->startOfDay();
-            $query->where('due_date', '>=', $startDate);
+        if (!empty($filters['start_date']['constraints'])) {
+            applyDateConstraints($query, $filters['start_date']['constraints'], 'start_date');
+        }
 
-            if (isset($dates[1])) {
-                $endDate = Carbon::parse($dates[1])->endOfDay();
-                $query->where('due_date', '<=', $endDate);
-            }
-            $query->orderBy('customer_name', 'asc');
+        if (!empty($filters['due_date']['constraints'])) {
+            applyDateConstraints($query, $filters['due_date']['constraints'], 'due_date');
         }
 
         if ($categories = Request::input('categories', [])) {
@@ -267,20 +257,7 @@ Route::middleware([
             });
         }
 
-        $filterSubsQuery =  $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'serviceCode', 'deliveredOrDeliveryBookedBy', 'serviceCodeUpdatedBy', 'odooCreatedBy')->whereDoesntHave('orderLine', function ($query) {
-            $query->where('product', 'like', '%Filter Subscription%')
-                ->orWhere('description', 'like', '%Filter Subscription%');
-        })
-            ->orderBy($sortBy, $sortOrder);
-
-
-        $filterSubIds = $filterSubsQuery->pluck('id')->map(function ($id) {
-            return ['id' => $id];
-        })->values()->all();
-
-        // Create a separate variable for the paginated result
-        $filterSubs = $filterSubsQuery->paginate($perPage, ['*'], 'page', $currentPage)
-            ->withQueryString();
+        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'serviceCode', 'deliveredOrDeliveryBookedBy', 'serviceCodeUpdatedBy')->orderBy($sortBy, $sortOrder)->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
 
         $stateIds = Cache::remember('state_ids', 60, function () {
             return StateId::all()->sortByDesc('state_id');
@@ -292,10 +269,11 @@ Route::middleware([
         });
 
         return Inertia::render('SubscriptionsToDeliver', [
-            'filterSubIds' => $filterSubIds,
+            'filterSubIds' => $query->pluck('id'),
             'filterSubs' =>  $filterSubs,
             'stateIds' => $stateIds,
             'serviceCodes' => $serviceCodes,
+            'filters' => $filters,
         ]);
     })->name('subscriptionsToDeliver');
 
@@ -304,19 +282,15 @@ Route::middleware([
         $perPage = (int) Request::input('perPage', 100);
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
-        $dates = Request::input('dates', []);
-
+        $filters = json_decode(Request::input('filters'), true);
         $query = DeliverSub::query()->whereNotNull('required_delivery')->where('required_delivery', '=', 'Confirm');
 
-        if (!empty($dates)) {
-            $startDate = Carbon::parse($dates[0])->startOfDay();
-            $query->where('due_date', '>=', $startDate);
+        if (!empty($filters['start_date']['constraints'])) {
+            applyDateConstraints($query, $filters['start_date']['constraints'], 'start_date');
+        }
 
-            if (isset($dates[1])) {
-                $endDate = Carbon::parse($dates[1])->endOfDay();
-                $query->where('due_date', '<=', $endDate);
-            }
-            $query->orderBy('customer_name', 'asc');
+        if (!empty($filters['due_date']['constraints'])) {
+            applyDateConstraints($query, $filters['due_date']['constraints'], 'due_date');
         }
 
         if ($categories = Request::input('categories', [])) {
@@ -374,28 +348,24 @@ Route::middleware([
             'filterSubs' =>  $filterSubs,
             'stateIds' => $stateIds,
             'serviceCodes' => $serviceCodes,
+            'filters' => $filters,
         ]);
     })->name('subscriptionsToDeliverFilterSubscription');
-
 
     Route::get('/forUpselling', function () {
         $currentPage = (int) Request::input('page', 1);
         $perPage = (int) Request::input('perPage', 100);
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
-        $dates = Request::input('dates', []);
-
+        $filters = json_decode(Request::input('filters'), true);
         $query = FilterSubs::query(); //->whereNull('created_on_odoo');
 
-        if (!empty($dates)) {
-            $startDate = Carbon::parse($dates[0])->startOfDay();
-            $query->where('due_date', '>=', $startDate);
+        if (!empty($filters['start_date']['constraints'])) {
+            applyDateConstraints($query, $filters['start_date']['constraints'], 'start_date');
+        }
 
-            if (isset($dates[1])) {
-                $endDate = Carbon::parse($dates[1])->endOfDay();
-                $query->where('due_date', '<=', $endDate);
-            }
-            $query->orderBy('customer_name', 'asc');
+        if (!empty($filters['due_date']['constraints'])) {
+            applyDateConstraints($query, $filters['due_date']['constraints'], 'due_date');
         }
 
         $query->whereIn('activity_summary', [
@@ -430,6 +400,7 @@ Route::middleware([
             'filterSubIds' => $query->pluck('id'),
             'filterSubs' =>  $filterSubs,
             'stateIds' => $stateIds,
+            'filters' => $filters,
         ]);
     })->name('forUpselling');
 });

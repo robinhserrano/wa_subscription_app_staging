@@ -59,8 +59,6 @@
             <p>
                 {{ selectedCustomerAddress }}
             </p> -->
-            <p class="mt-4 mb-2 text-xl font-bold">Date Range</p>
-            <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
 
 
         </Drawer>

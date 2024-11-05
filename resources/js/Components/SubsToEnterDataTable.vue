@@ -59,8 +59,6 @@
                     :value="category.name" />
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
-            <p class="mt-4 mb-2 text-xl font-bold">Date Range</p>
-            <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
         </Drawer>
         <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV(stateIds)" class="ml-4"></Button>
         <Paginator :rows="selectedRowCount" :totalRecords="totalRecord"
@@ -72,7 +70,7 @@
         </Paginator>
         <DataTable v-model:selection="selectedItems" :value="getFilteredData(
             filterSubs.data)" lazy :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id"
-            filterDisplay="menu">
+            filterDisplay="menu" v-model:filters="filters">
             <template #header>
                 <div class="flex justify-between">
                     <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -127,14 +125,21 @@
             </Column>
             <Column field="address" header="Address" style="min-width: 10rem"></Column>
             <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem"></Column>
-            <Column field="start_date" header="Start Date" style="min-width: 10rem">
+            <Column field="start_date" header="Start Date" style="min-width: 10rem" filterField="start_date" dataType="date">
                 <template #body="{ data }">
                     {{ formatDate(data.start_date) }}
                 </template>
+                <template #filter="{ filterModel }">
+                    <DatePicker v-model="filterModel.value" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy" />
+                </template>
             </Column>
-            <Column field="due_date" header="Due Date" style="min-width: 10rem">
+            <Column field="due_date" header="Due Date" style="min-width: 10rem" filterField="due_date" dataType="date" >
                 <template #body="{ data }">
                     {{ formatDate(data.due_date) }}
+                </template>
+
+                <template #filter="{ filterModel }">
+                    <DatePicker v-model="filterModel.value" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy" />
                 </template>
             </Column>
             <Column field="invoice_number" header="Invoice Number" style="min-width: 10rem"></Column>
@@ -179,6 +184,8 @@ import axios from 'axios';
 import { useToast } from 'primevue/usetoast'
 import * as XLSX from 'xlsx';
 import 'primeicons/primeicons.css'
+import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
+
 
 const attrs = useAttrs()
 let props = defineProps({
@@ -186,6 +193,7 @@ let props = defineProps({
     filterSubs: Object,
     filterSubIds: Object,
     stateIds: Object,
+    filters: Object, 
 });
 
 const selectedItems = ref([]);
@@ -232,6 +240,7 @@ const selectedStateIds = ref([])
 const selectedActivitySummary = ref([])
 const selectedCategories = ref([])
 const selectedRowCount = ref(100)
+const filters = ref();
 
 
 onMounted(() => {
@@ -240,6 +249,14 @@ onMounted(() => {
     salesQuotations.value = props.salesQuotations
     stateIds.value = props.stateIds
 });
+
+const initFilters = () => {
+    filters.value = {
+        start_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
+        due_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
+    };
+};
+initFilters();
 
 const handlePageChange = (event) => {
     selectedRowCount.value = event.rows
@@ -267,6 +284,7 @@ const fetchData = async () => {
             activitySummary: selectedActivitySummary.value,
             categories: selectedCategories.value,
             perPage: selectedRowCount.value,
+            filters: JSON.stringify(filters.value), 
         }, {
             preserveState: true,
             replace: false,
@@ -274,6 +292,11 @@ const fetchData = async () => {
                 console.log(newData)
                 console.log(newData.props.filterSubs.total)
                 totalRecord.value = newData.props.filterSubs.total
+                // filters.value = newData.props.filters
+                const newFilters = newData.props.filters;
+                if (JSON.stringify(filters.value) !== JSON.stringify(newFilters)) {
+                    filters.value = newFilters;
+                }
             },
         })
 
@@ -296,6 +319,7 @@ const debouncedFetchData = debounce(async () => {
             activitySummary: selectedActivitySummary.value,
             categories: selectedCategories.value,
             perPage: selectedRowCount.value,
+            filters: JSON.stringify(filters.value), 
         }, {
             preserveState: true,
             replace: false,
@@ -426,6 +450,15 @@ watch(dates, async (nesDates) => {
 watch(selectedCategories, async (newCategory) => {
     console.log('changed date, load fetch data 1')
     if (newCategory) {
+        console.log('changed date, load fetch data 2')
+        fetchData()
+
+    }
+});
+
+watch(filters, async (newFilters) => {
+    console.log('changed date, load fetch data 1')
+    if (newFilters) {
         console.log('changed date, load fetch data 2')
         fetchData()
 
@@ -623,6 +656,5 @@ function s2ab(s) {
     }
     return buf;
 }
-
-
 </script>
+
