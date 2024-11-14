@@ -59,8 +59,6 @@
                     :value="category.name" />
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
-            <p class="mt-4 mb-2 text-xl font-bold">Date Range</p>
-            <DatePicker v-model="dates" selectionMode="range" :manualInput="false" />
         </Drawer>
         <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV(stateIds)" class="ml-4"></Button>
         <Paginator :rows="selectedRowCount" :totalRecords="totalRecord"

@@ -27,6 +27,8 @@ function applyDateConstraints($query, $constraints, $dateField)
             $adjustedValue = Carbon::parse($constraint['value'])->addHours(8);
 
             $query->where($dateField, $operators[$constraint['matchMode']], $adjustedValue);
+
+            $query->orderBy('customer_name', 'asc');
         }
     }
 }
