@@ -89,7 +89,7 @@
         </Paginator>
         <DataTable v-model:selection="selectedItems" :value="getFilteredData(
             filterSubs.data)" lazy :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id"
-            filterDisplay="menu">
+            filterDisplay="menu" v-model:filters="filters">
             <template #header>
                 <div class="flex justify-between">
 
@@ -134,12 +134,12 @@
                     <i v-if="data.delivered_or_delivery_booked && data.delivered_or_delivery_booked.value !== null"
                         class="pi pi-truck ml-2"></i>
 
-                        <Avatar v-if="data.odoo_created_by_id"
+                        <!-- <Avatar v-if="data.odoo_created_by_id"
                             class="ml-2"
                             style="background-color: #ffffff; color: #ffffff" 
                           v-tooltip="`Last updated by:\n${data.odoo_created_by.name}`">
                             <img :src="data.odoo_created_by.profile_photo_url" alt="User Initials" />
-                        </Avatar>
+                        </Avatar> -->
                     </div>
                 </template>
             </Column>
@@ -247,19 +247,22 @@
             </Column>
             <Column field="address" header="Address" style="min-width: 10rem"></Column>
             <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem"></Column>
-            <Column field="start_date" header="Start Date" style="min-width: 10rem">
+            <Column field="start_date" header="Start Date" style="min-width: 10rem" filterField="start_date" dataType="date">
                 <template #body="{ data }">
                     {{ formatDate(data.start_date) }}
                 </template>
+                <template #filter="{ filterModel }">
+                    <DatePicker v-model="filterModel.value" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy" />
+                </template>
             </Column>
-            <Column field="due_date" header="Due Date" style="min-width: 10rem">
+            <Column field="due_date" header="Due Date" style="min-width: 10rem" filterField="due_date" dataType="date" >
                 <template #body="{ data }">
                     {{ formatDate(data.due_date) }}
                 </template>
-                <!-- <template #filter="{ filterModel }">
-                    <DatePicker v-model="filterModel.value" dateFormat="yy/mm/dd" placeholder="yyyy/mm/dd" />
-                </template> -->
 
+                <template #filter="{ filterModel }">
+                    <DatePicker v-model="filterModel.value" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy" />
+                </template>
             </Column>
             <Column field="invoice_number" header="Invoice Number" style="min-width: 10rem"></Column>
             <Column field="invoice_date" header="Invoice Date" style="min-width: 10rem">
@@ -313,6 +316,7 @@ import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { useConfirm } from "primevue/useconfirm";
 import Avatar from 'primevue/avatar';
+
 
 const confirm = useConfirm();
 const handleUnlink = (rootSalesOrder, newSalesOrder, newSalesOrderId) =>   {
