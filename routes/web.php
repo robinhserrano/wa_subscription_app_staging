@@ -137,22 +137,34 @@ Route::middleware([
             });
         }
 
+        // $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
+        //     ->whereDoesntHave('orderLine', function ($query) {
+        //         $query->where('product', 'like', '%Filter Subscription%')
+        //             ->orWhere('description', 'like', '%Filter Subscription%');
+        //     })
+        //     ->orderBy($sortBy, $sortOrder)
+        //     ->paginate($perPage, ['*'], 'page', $currentPage)
+        //     ->withQueryString();
         $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
             ->whereDoesntHave('orderLine', function ($query) {
                 $query->where('product', 'like', '%Filter Subscription%')
                     ->orWhere('description', 'like', '%Filter Subscription%');
             })
-            ->orderBy($sortBy, $sortOrder)
-            ->paginate($perPage, ['*'], 'page', $currentPage)
-            ->withQueryString();
+            ->orderBy($sortBy, $sortOrder);
+
+        $filterSubIds = $filterSubs->pluck('id')->map(function ($id) {
+            return ['id' => $id];
+        })->values()->all();
+
+        $filterSubsPaginated = $filterSubs->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
 
         $stateIds = Cache::remember('state_ids', 60, function () {
             return StateId::all()->sortByDesc('state_id');
         });
 
         return Inertia::render('ConfirmDeliveryRequirement', [
-            'filterSubIds' => $query->pluck('id'),
-            'filterSubs' =>  $filterSubs,
+            'filterSubIds' => $filterSubIds,
+            'filterSubs' =>  $filterSubsPaginated,
             'stateIds' => $stateIds,
             'users' => User::all(),
             'filters' => $filters,
@@ -194,29 +206,41 @@ Route::middleware([
             });
         }
 
+        // $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
+        //     ->whereHas('orderLine', function ($query) {
+        //         $query->where('product', 'like', '%Filter Subscription%')
+        //             ->orWhere('description', 'like', '%Filter Subscription%');
+        //     })
+        //     ->orderBy($sortBy, $sortOrder)
+        //     ->paginate($perPage, ['*'], 'page', $currentPage)
+        //     ->withQueryString();
+
+        // $filterSubs->transform(function ($filterSub) {
+        //     $filterSub->hasCallOutService = $filterSub->orderLine->contains(function ($orderLine) {
+        //         return strpos($orderLine->product, 'Call Out Service') !== false || strpos($orderLine->description, 'Call Out Service') !== false;
+        //     });
+        //     return $filterSub;
+        // });
         $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'requiredDeliveryUpdatedBy', 'odooCreatedBy')
             ->whereHas('orderLine', function ($query) {
                 $query->where('product', 'like', '%Filter Subscription%')
                     ->orWhere('description', 'like', '%Filter Subscription%');
             })
-            ->orderBy($sortBy, $sortOrder)
-            ->paginate($perPage, ['*'], 'page', $currentPage)
-            ->withQueryString();
+            ->orderBy($sortBy, $sortOrder);
 
-        $filterSubs->transform(function ($filterSub) {
-            $filterSub->hasCallOutService = $filterSub->orderLine->contains(function ($orderLine) {
-                return strpos($orderLine->product, 'Call Out Service') !== false || strpos($orderLine->description, 'Call Out Service') !== false;
-            });
-            return $filterSub;
-        });
+        $filterSubIds = $filterSubs->pluck('id')->map(function ($id) {
+            return ['id' => $id];
+        })->values()->all();
+
+        $filterSubsPaginated = $filterSubs->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
 
         $stateIds = Cache::remember('state_ids', 60, function () {
             return StateId::all()->sortByDesc('state_id');
         });
 
         return Inertia::render('ConfirmDeliveryFilterSubscription', [
-            'filterSubIds' => $query->pluck('id'),
-            'filterSubs' =>  $filterSubs,
+            'filterSubIds' => $filterSubIds,
+            'filterSubs' =>  $filterSubsPaginated,
             'stateIds' => $stateIds,
             'users' => User::all(),
             'filters' => $filters,
