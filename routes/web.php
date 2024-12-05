@@ -102,6 +102,7 @@ Route::middleware([
         $sortBy = Request::input('sortBy', 'due_date'); // Default sorting by due date
         $sortOrder = Request::input('sortOrder', 'desc'); // Default descending order
         $filters = json_decode(Request::input('filters'), true);
+
         $query = DeliverSub::query(); //->whereNull('created_on_odoo');
         // $query = DeliverSub::query()
         //     ->where(function ($query) {
@@ -118,6 +119,10 @@ Route::middleware([
             applyDateConstraints($query, $filters['due_date']['constraints'], 'due_date');
         }
 
+        if ($stateId = Request::input('stateId', [])) {
+            $query->whereIn('state_id', $stateId);
+        }
+
         if ($categories = Request::input('categories', [])) {
             $query->whereIn('category', $categories);
         }
@@ -126,8 +131,12 @@ Route::middleware([
             $query->whereIn('activity_summary', $activitySummary);
         }
 
-        if ($stateId = Request::input('stateId', [])) {
-            $query->whereIn('state_id', $stateId);
+        if ($requireDeliveryTypes = Request::input('requireDeliveryTypes', [])) {
+            $query->whereIn('required_delivery', $requireDeliveryTypes);
+
+            if (in_array('Pending', $requireDeliveryTypes)) {
+                $query->orWhereNull('required_delivery');
+            }
         }
 
         if ($search = Request::input('search')) {
@@ -187,6 +196,10 @@ Route::middleware([
             applyDateConstraints($query, $filters['due_date']['constraints'], 'due_date');
         }
 
+        if ($stateId = Request::input('stateId', [])) {
+            $query->whereIn('state_id', $stateId);
+        }
+
         if ($categories = Request::input('categories', [])) {
             $query->whereIn('category', $categories);
         }
@@ -195,8 +208,12 @@ Route::middleware([
             $query->whereIn('activity_summary', $activitySummary);
         }
 
-        if ($stateId = Request::input('stateId', [])) {
-            $query->whereIn('state_id', $stateId);
+        if ($requireDeliveryTypes = Request::input('requireDeliveryTypes', [])) {
+            $query->whereIn('required_delivery', $requireDeliveryTypes);
+
+            if (in_array('Pending', $requireDeliveryTypes)) {
+                $query->orWhereNull('required_delivery');
+            }
         }
 
         if ($search = Request::input('search')) {
