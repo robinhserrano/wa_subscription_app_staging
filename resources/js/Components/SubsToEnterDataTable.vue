@@ -60,7 +60,12 @@
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
         </Drawer>
-        <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV(stateIds)" class="ml-4"></Button>
+        <Button v-if="selectedItems.length" class="ml-4" outlined> <p class="font-bold">
+            {{ selectedItems.length }} 
+        </p>selected <Button v-if="selectedItems.length < filterSubs.total" :label="`Select all ${filterSubIds.length}`" @click="selectAll(filterSubIds)"
+        icon="pi pi-arrow-right" class="ml-4" severity="info" ></Button></Button>
+        <Button v-if="selectedItems.length" :label="`Export as Excel (${selectedItems.length})`" @click="downloadCSV(selectedItems,stateIds)" class="ml-4"></Button>
+        <!-- <Button v-if="selectedItems.length" label="Export as Excel" @click="downloadCSV(stateIds)" class="ml-4"></Button> -->
         <Paginator :rows="selectedRowCount" :totalRecords="totalRecord"
             :rowsPerPageOptions="[10, 25, 50, 100, totalRecord].sort((a, b) => a - b)" @page="handlePageChange">
             <template #start="slotProps">
@@ -68,8 +73,7 @@
                 {{ filterSubs.total }}
             </template>
         </Paginator>
-        <DataTable v-model:selection="selectedItems" :value="getFilteredData(
-            filterSubs.data)" lazy :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id"
+        <DataTable v-model:selection="selectedItems" :value="filterSubs.data" lazy :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id"
             filterDisplay="menu" v-model:filters="filters">
             <template #header>
                 <div class="flex justify-between">
@@ -165,56 +169,50 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, useAttrs } from 'vue';
-import DataTable from 'primevue/datatable';
+import axios from 'axios';
+import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
+import Button from 'primevue/button';
+import Checkbox from 'primevue/checkbox';
 import Column from 'primevue/column';
+import DataTable from 'primevue/datatable';
+import DatePicker from 'primevue/datepicker';
+import Drawer from 'primevue/drawer';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
-import Tag from 'primevue/tag';
-import Select from 'primevue/select';
-import Checkbox from 'primevue/checkbox';
-import Button from 'primevue/button';
-import DatePicker from 'primevue/datepicker';
-import { router } from '@inertiajs/vue3';
 import Paginator from 'primevue/paginator';
+import Select from 'primevue/select';
+import Tag from 'primevue/tag';
+import { onMounted, ref, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
+import { useToast } from 'primevue/usetoast';
 import debounce from 'lodash/debounce';
-import Drawer from 'primevue/drawer';
-import axios from 'axios';
-import { useToast } from 'primevue/usetoast'
 import * as XLSX from 'xlsx';
-import 'primeicons/primeicons.css'
-import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
+import 'primeicons/primeicons.css';
 
-
-const attrs = useAttrs()
-let props = defineProps({
-    currentUser: Object,
-    filterSubs: Object,
-    filterSubIds: Object,
-    stateIds: Object,
-    filters: Object, 
-});
-
-const selectedItems = ref([]);
-const loading = ref(true);
 const currentPage = ref(1);
+const dates = ref([]);
+const dropdownOptions = ref([]);
+const filters = ref();
+const loading = ref(true);
+const selectedActivitySummary = ref([]);
+const selectedCategories = ref([]);
+const selectedCustomerAddress = ref();
+const selectedCustomerContactAddress = ref([]);
+const selectedCustomerName = ref();
+const selectedItems = ref([]);
+const selectedRowCount = ref(100);
+const selectedSalesOrder = ref();
+const selectedSalesOrderId = ref();
+const selectedSalesOrderLines = ref();
+const selectedStateIds = ref([]);
+const stateIds = ref([]);
+const toast = useToast();
 const totalRecord = ref(0);
-const search = ref();
 const visible = ref(false);
 const visibleRight = ref(false);
 const salesQuotations = ref();
-const dropdownOptions = ref([]);
-const toast = useToast()
-const stateIds = ref([])
-const selectedSalesOrderId = ref();
-const selectedSalesOrderLines = ref();
-const selectedCustomerName = ref();
-const selectedCustomerAddress = ref();
-const selectedCustomerContactAddress = ref([]);
-const categoryTypes = ref([{ "id": 1, "name": "Subscription", },
-    //  { "id": 2, "name": "1st Stage Filter Only", },
-]);
+const search = ref();
 
 const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter" },
 { "id": 2, "name": "Independent 3 + 3 Due for Change" },
@@ -226,22 +224,16 @@ const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter" },
 { "id": 8, "name": "Final Date to Order Filters for Warranty Extension" },
 ]);
 
-const dropdownRequireDelivery = ref([
-
-    { name: 'Confirm', value: 'Confirm' },
-    { name: 'Deny', value: 'Deny' },
-    { name: '- Unselect -', value: null },
+const categoryTypes = ref([{ "id": 1, "name": "Subscription", },
 ]);
-const dates = ref([]);
 
-const selectedSalesOrder = ref();
-
-const selectedStateIds = ref([])
-const selectedActivitySummary = ref([])
-const selectedCategories = ref([])
-const selectedRowCount = ref(100)
-const filters = ref();
-
+let props = defineProps({
+    currentUser: Object,
+    filterSubs: Object,
+    filterSubIds: Object,
+    stateIds: Object,
+    filters: Object, 
+});
 
 onMounted(() => {
     loading.value = false;
@@ -256,160 +248,19 @@ const initFilters = () => {
         due_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
     };
 };
+
 initFilters();
-
-const handlePageChange = (event) => {
-    selectedRowCount.value = event.rows
-    currentPage.value = event.page + 1 // Adjusting because page index is 0-based
-    console.log('page change')
-    console.log(currentPage.value)
-    fetchData()
-}
-
-const handleSearch = (event) => {
-    search.value = event.target.value;
-    console.log(event.target.value);
-    debouncedFetchData();  // Call the debounced function
-};
-
-const fetchData = async () => {
-    try {
-        console.log('fetch data page')
-        console.log(currentPage.value)
-        const response = router.get('/dashboard', {
-            page: currentPage.value,
-            search: search.value,
-            dates: dates.value,
-            stateId: selectedStateIds.value,
-            activitySummary: selectedActivitySummary.value,
-            categories: selectedCategories.value,
-            perPage: selectedRowCount.value,
-            filters: JSON.stringify(filters.value), 
-        }, {
-            preserveState: true,
-            replace: false,
-            onSuccess: (newData) => {
-                console.log(newData)
-                console.log(newData.props.filterSubs.total)
-                totalRecord.value = newData.props.filterSubs.total
-                // filters.value = newData.props.filters
-                const newFilters = newData.props.filters;
-                if (JSON.stringify(filters.value) !== JSON.stringify(newFilters)) {
-                    filters.value = newFilters;
-                }
-            },
-        })
-
-    } catch (error) {
-        console.error('Error fetching data:', error)
-    } finally {
-        loading.value = false
-    }
-}
-
-const debouncedFetchData = debounce(async () => {
-    try {
-        console.log('fetch data page');
-        console.log(currentPage.value);
-        const response = await router.get('/dashboard', {
-            page: currentPage.value,
-            search: search.value,
-            dates: dates.value,
-            stateId: selectedStateIds.value,
-            activitySummary: selectedActivitySummary.value,
-            categories: selectedCategories.value,
-            perPage: selectedRowCount.value,
-            filters: JSON.stringify(filters.value), 
-        }, {
-            preserveState: true,
-            replace: false,
-            onSuccess: (newData) => {
-                console.log(newData);
-                console.log(newData.props.filterSubs.total);
-                totalRecord.value = newData.props.filterSubs.total;
-            },
-        });
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    } finally {
-        loading.value = false;
-    }
-}, 300);
-
-const formatDate = (dateStr) => (dateStr ? new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null);
-
-const formatDates = (dates) => {
-    if (!dates || dates.length === 0) {
-        return '';
-    }
-
-    const startDate = new Date(dates[0]);
-    const endDate = dates[1] ? new Date(dates[1]) : startDate; // Handle null or undefined endDate
-
-    return `${startDate.toLocaleDateString('en-PH', { day: '2-digit', month: '2-digit', year: 'numeric' })} to ${endDate.toLocaleDateString('en-PH', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
-};
-
-const formatStates = (selectedStatesIds) => {
-    return selectedStatesIds
-        .map(selectedStatesId => stateIds.value[selectedStatesId - 1]?.code) // Remove undefined values
-        .join(', ');
-}
-
-const formatCurrency = (value) => {
-    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-};
-const clearFilter = () => {
-    initFilters();
-};
-
-const handleCellClick = (salesOrder) => {
-    visible.value = true
-    selectedSalesOrderId.value = salesOrder.sales_order_no
-    selectedSalesOrderLines.value = salesOrder.order_line
-    selectedCustomerName.value = salesOrder.customer_name
-    selectedCustomerAddress.value = salesOrder.address
-    selectedCustomerContactAddress.value = salesOrder.contact_address
-
-    selectedSalesOrder.value = salesOrder;
-}
-
-const handleSelectClickOdooCreatedBy = (salesOrder) => {
-    selectedSalesOrderId.value = salesOrder.sales_order_no
-}
-
-const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
-    try {
-        if (salesOrder.created_on_odoo?.value) {
-            console.log(salesOrder)
-
-            const response = await axios.post(`/api/createDeliverSub`, {
-                filter_sub_id: salesOrder.id,
-                created_on_odoo: salesOrder.created_on_odoo.value,
-                odoo_created_by_id: props.currentUser.id,
-                due_date: salesOrder.due_date.value,
-            });
-            toast.add({ severity: 'success', summary: `Moved #${salesOrder.sales_order_no} to Confirm Delivery Requirement`, detail: '', life: 3000 })
-        }
-    } catch (error) {
-        console.error('Failed to update created_on_odoo:', error);
-        if (error.response.data.error) {
-            toast.add({ severity: 'error', summary: error.response.data.error, detail: '', life: 3000 })
-        } else {
-            toast.add({ severity: 'error', summary: 'Failed to update created on odoo', detail: '', life: 3000 })
-        }
-    }
-}
 
 watch(selectedSalesOrderId, async (newSalesOrderId) => {
     if (newSalesOrderId) {
         try {
-            const response2 = await axios.get('/api/findFilterSubsBySalesOrderNo', {
+            const response = await axios.get('/api/findFilterSubsBySalesOrderNo', {
                 params: {
                     'sales_order_no': newSalesOrderId
                 }
             });
 
-            dropdownOptions.value = response2.data.map(item => ({
+            dropdownOptions.value = response.data.map(item => ({
                 name: item,
                 value: item,
 
@@ -422,117 +273,21 @@ watch(selectedSalesOrderId, async (newSalesOrderId) => {
     }
 });
 
-watch(selectedStateIds, async (newStateId) => {
-    console.log('changed state, load fetch data 1')
-    if (newStateId) {
-        console.log('changed state, load fetch data 2')
-        fetchData()
-    }
+watch([
+    () => dates.value,
+    () => selectedStateIds.value,
+    () => selectedActivitySummary.value,
+    () => selectedCategories.value,
+    () => filters.value
+], () => {
+    fetchData();
 });
 
-watch(selectedActivitySummary, async (newActivitySummary) => {
-    console.log('changed state, load fetch data 1')
-    if (newActivitySummary) {
-        console.log('changed state, load fetch data 2')
-        fetchData()
-    }
-});
+const clearFilter = () => {
+    initFilters();
+};
 
-watch(dates, async (nesDates) => {
-    console.log('changed date, load fetch data 1')
-    if (nesDates) {
-        console.log('changed date, load fetch data 2')
-        fetchData()
-
-    }
-});
-
-watch(selectedCategories, async (newCategory) => {
-    console.log('changed date, load fetch data 1')
-    if (newCategory) {
-        console.log('changed date, load fetch data 2')
-        fetchData()
-
-    }
-});
-
-watch(filters, async (newFilters) => {
-    console.log('changed date, load fetch data 1')
-    if (newFilters) {
-        console.log('changed date, load fetch data 2')
-        fetchData()
-
-    }
-});
-
-const getFilteredData = (data) => {
-    return data
-    // .filter(item => item.created_on_odoo === null ||
-    //     item.created_on_odoo?.value === null
-    // );
-}
-
-const getCreatedOnOdoosNo = (data) => {
-    return data.filter(item => item.created_on_odoo !== null && item.created_on_odoo !== undefined
-
-    ).length;
-}
-
-// const downloadCSV = (stateIds) => {
-//     const headers = {
-//         'Invoice Number': 'invoice_number',
-//         'Sales Order': 'sales_order_no',
-//         'Customer Name': 'customer_name',
-//         'Invoice Date': 'invoice_date',
-//         'Payment Status': 'payment_status',
-//         'Address': 'address',
-//         'State': 'state_id',
-//         'Activity Summary': 'activity_summary',
-//         'Phone Number': 'phone',
-//         'Email': 'email',
-//         'Due Date': 'due_date',
-//         'Created on Odoo': 'created_on_odoo',
-//     };
-
-//     const groupedData = {};
-
-//     // Map JSON data to include only selected columns with custom headers
-//     selectedItems.value.forEach(item => {
-//         item.state_id = stateIds[item.state_id - 1]?.name;
-//         const newItem = {};
-//         for (const [header, key] of Object.entries(headers)) {
-//             newItem[header] = item[key];
-//         }
-
-//         if (!groupedData[item.state_id]) {
-//             groupedData[item.state_id] = [];
-//         }
-//         groupedData[item.state_id].push(newItem);
-//     });
-
-//     // Create a new workbook
-//     const wb = XLSX.utils.book_new();
-
-//     // Create a worksheet for each state and append it to the workbook
-//     for (const state in groupedData) {
-//         const ws = XLSX.utils.json_to_sheet(groupedData[state]);
-//         XLSX.utils.book_append_sheet(wb, ws, state);
-//     }
-
-//     // Generate CSV file for the first state as an example (or modify as needed)
-//     const csvOutput = XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(groupedData[Object.keys(groupedData)[0]]));
-//     const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
-//     const url = URL.createObjectURL(blob);
-
-//     const link = document.createElement('a');
-//     link.href = url;
-//     link.setAttribute('download', 'subs_to_enter.csv');
-//     document.body.appendChild(link);
-//     link.click();
-//     document.body.removeChild(link);
-// };
-
-const downloadCSV2 = (stateIds) => {
+const downloadCSV = async (selectedItems, stateIds) => {
     const headers = {
         'Invoice Number': 'invoice_number',
         'Sales Order': 'sales_order_no',
@@ -548,63 +303,14 @@ const downloadCSV2 = (stateIds) => {
         'Created on Odoo': 'created_on_odoo',
     };
 
-
-    // Map JSON data to include only selected columns with custom headers
-    const mappedData = selectedItems.value.map(item => {
-        // console.log('A')
-        // console.log(item['address'])
-        // console.log(item['contact_address'].complete_address)
-      
-        console.log(item)
-        console.log(item['contact_address'])
-        item.state_id =   stateIds[item.state_id - 1]?.name;
-
-        let newItem = {};
-        for (const [header, key] of Object.entries(headers)) {
-            newItem[header] = item[key]
-        }
-
-        console.log(newItem)
-        return newItem;
+    try {
+        const response = await axios.post('/api/getFilterSubByIds', {
+                 filterSubIds: selectedItems
     });
 
-    // Convert the mapped data to a worksheet
-    const ws = XLSX.utils.json_to_sheet(mappedData);
-
-    // Create a new workbook and append the worksheet
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-
-    // Generate CSV file and initiate download
-    const csvOutput = XLSX.utils.sheet_to_csv(ws);
-    const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'subs_to_enter.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-};
-const downloadCSV = (stateIds) => {
-    const headers = {
-        'Invoice Number': 'invoice_number',
-        'Sales Order': 'sales_order_no',
-        'Customer Name': 'customer_name',
-        'Invoice Date': 'invoice_date',
-        'Payment Status': 'payment_status',
-        'Address': 'address',
-        'State': 'state_id',
-        'Activity Summary': 'activity_summary',
-        'Phone Number': 'phone',
-        'Email': 'email',
-        'Due Date': 'due_date',
-        'Created on Odoo': 'created_on_odoo',
-    };
-
+    if(response.status === 200){
     // Map JSON data to include only selected columns with custom headers
-    const mappedData = selectedItems.value.map(item => {
+    const mappedData = response.data.filterSubs.map(item => {
         item.state_id = stateIds[item.state_id - 1]?.name;
 
         let newItem = {};
@@ -645,7 +351,120 @@ const downloadCSV = (stateIds) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    }else {
+            toast.add({ severity: 'error', summary: 'Unable to fetch filter subscriptions', detail: '', life: 3000 })
+    }
+    } catch (error) {
+        toast.add({ severity: 'error', summary:'Error: ' + (error), detail: '', life: 3000 })
+    }
+
+  
 };
+
+const fetchData = async () => {
+    try {
+        const response = router.get('/dashboard', {
+            page: currentPage.value,
+            search: search.value,
+            dates: dates.value,
+            stateId: selectedStateIds.value,
+            activitySummary: selectedActivitySummary.value,
+            categories: selectedCategories.value,
+            perPage: selectedRowCount.value,
+            filters: JSON.stringify(filters.value), 
+        }, {
+            preserveState: true,
+            replace: false,
+            onSuccess: (newData) => {
+                console.log(newData)
+                console.log(newData.props.filterSubs.total)
+                totalRecord.value = newData.props.filterSubs.total
+                // filters.value = newData.props.filters
+                const newFilters = newData.props.filters;
+                if (JSON.stringify(filters.value) !== JSON.stringify(newFilters)) {
+                    filters.value = newFilters;
+                }
+            },
+        })
+
+    } catch (error) {
+        console.error('Error fetching data:', error)
+    } finally {
+        loading.value = false
+    }
+}
+
+const debouncedFetchData = debounce(fetchData, 300);
+
+const formatDate = (dateStr) => (dateStr ? new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null);
+
+const formatDates = (dates) => {
+    if (!dates || dates.length === 0) {
+        return '';
+    }
+
+    const startDate = new Date(dates[0]);
+    const endDate = dates[1] ? new Date(dates[1]) : startDate; // Handle null or undefined endDate
+
+    return `${startDate.toLocaleDateString('en-PH', { day: '2-digit', month: '2-digit', year: 'numeric' })} to ${endDate.toLocaleDateString('en-PH', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+};
+
+const formatStates = (selectedStatesIds) => {
+    return selectedStatesIds
+        .map(selectedStatesId => stateIds.value[selectedStatesId - 1]?.code) // Remove undefined values
+        .join(', ');
+}
+
+const handleCellClick = (salesOrder) => {
+    visible.value = true
+    selectedSalesOrderId.value = salesOrder.sales_order_no
+    selectedSalesOrderLines.value = salesOrder.order_line
+    selectedCustomerName.value = salesOrder.customer_name
+    selectedCustomerAddress.value = salesOrder.address
+    selectedCustomerContactAddress.value = salesOrder.contact_address
+    selectedSalesOrder.value = salesOrder;
+}
+
+const handlePageChange = (event) => {
+    selectedRowCount.value = event.rows
+    currentPage.value = event.page + 1 // Adjusting because page index is 0-based
+    console.log('page change')
+    console.log(currentPage.value)
+    fetchData()
+}
+
+const handleSearch = (event) => {
+    search.value = event.target.value;
+    console.log(event.target.value);
+    debouncedFetchData();  // Call the debounced function
+};
+
+const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
+    try {
+        if (salesOrder.created_on_odoo?.value) {
+            console.log(salesOrder)
+
+            const response = await axios.post(`/api/createDeliverSub`, {
+                filter_sub_id: salesOrder.id,
+                created_on_odoo: salesOrder.created_on_odoo.value,
+                odoo_created_by_id: props.currentUser.id,
+                due_date: salesOrder.due_date.value,
+            });
+            toast.add({ severity: 'success', summary: `Moved #${salesOrder.sales_order_no} to Confirm Delivery Requirement`, detail: '', life: 3000 })
+        }
+    } catch (error) {
+        console.error('Failed to update created_on_odoo:', error);
+        if (error.response.data.error) {
+            toast.add({ severity: 'error', summary: error.response.data.error, detail: '', life: 3000 })
+        } else {
+            toast.add({ severity: 'error', summary: 'Failed to update created on odoo', detail: '', life: 3000 })
+        }
+    }
+}
+
+const handleSelectClickOdooCreatedBy = (salesOrder) => {
+    selectedSalesOrderId.value = salesOrder.sales_order_no
+}
 
 // Helper function to convert string to ArrayBuffer
 function s2ab(s) {
@@ -656,5 +475,9 @@ function s2ab(s) {
     }
     return buf;
 }
+
+const selectAll = async (filterSubIds) => {
+    selectedItems.value = filterSubIds
+};
 </script>
 

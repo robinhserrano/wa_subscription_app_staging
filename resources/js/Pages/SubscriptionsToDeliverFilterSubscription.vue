@@ -1,6 +1,6 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import SubsToDeliverFilterSubscriptionDataTable from '@/Components/SubsToDeliverFilterSubscriptionDataTable.vue';
+import SubsToDeliverDataTable from '@/Components/SubsToDeliverDataTable.vue';
 import { usePage } from '@inertiajs/vue3';
 const page = usePage();
 
@@ -18,7 +18,7 @@ let props = defineProps({
 <template>
     <AppLayout title="SubscriptionsToDeliver">
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
-            <SubsToDeliverFilterSubscriptionDataTable :filterSubs="filterSubs" :stateIds="stateIds"
+            <SubsToDeliverDataTable :filterSubs="filterSubs" :stateIds="stateIds"
                 :deliverSubIds="filterSubIds" :filters="filters" :currentUser="page.props.auth.user" :users="users" :serviceCodes="serviceCodes"/>
         </div>
     </AppLayout>

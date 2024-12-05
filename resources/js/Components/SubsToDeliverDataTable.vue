@@ -11,7 +11,6 @@
             </div>
         </div>
         <Toast />
-
         <Drawer v-model:visible="visible" :header="selectedSalesOrderId" class="!w-full md:!w-80 lg:!w-[30rem]">
             <p>
                 <i class="pi pi-user"></i> {{ selectedCustomerName }}
@@ -25,8 +24,6 @@
                 <Column field="description" header="Description" style="min-width: 10rem"></Column>
                 <Column field="quantity" header="Quantity" style="min-width: 5rem"></Column>
             </DataTable>
-
-
             <div>
                 <p v-if="selectedSalesOrder.contact_address[0].parent">
                 <p class="mt-6 mb-2"> Other Address:</p>
@@ -40,7 +37,6 @@
                 <i class="pi pi-building"></i> {{ child.complete_address }}
                 </p>
             </div>
-
         </Drawer>
         <Drawer v-model:visible="visibleRight" header="Filters" position="right" class="!w-full md:!w-80 lg:!w-[30rem]">
             <p class="mb-2 text-xl font-bold">States</p>
@@ -51,16 +47,6 @@
                     category.name
                 }}</label>
             </div>
-
-
-            <!-- <p class="mt-4 mb-2 text-xl font-bold">Category</p>
-            <div v-for="category of categoryTypes" :key="category.id" class="flex items-center mb-2">
-                <Checkbox v-model="selectedCategories" :inputId="category.name" name="category"
-                    :value="category.name" />
-                <label :for="category.id" class="ml-2">{{ category.name }}</label>
-            </div> -->
-
-
             <p class="mt-4 mb-2 text-xl font-bold">Activity Summary</p>
             <div v-for="category of activitySummaryTypes" :key="category.id" class="flex items-center mb-2">
                 <Checkbox v-model="selectedActivitySummary" :inputId="category.name" name="category"
@@ -68,7 +54,6 @@
                 <label :for="category.id" class="ml-2">{{ category.name }}</label>
             </div>
         </Drawer>
-        <!-- {{ props.serviceCodes }} -->
         <Button v-if="selectedItems.length" class="ml-4" outlined> <p class="font-bold">
             {{ selectedItems.length }} 
         </p>selected <Button v-if="selectedItems.length < filterSubs.total" :label="`Select all ${deliverSubIds.length}`" @click="selectAll(deliverSubIds)"
@@ -76,10 +61,6 @@
         <Button v-if="selectedItems.length" :label="`Export as Excel (${selectedItems.length})`" @click="downloadCSV(selectedItems)" class="ml-4"></Button>
         <Button v-if="selectedItems.length" :label="`Mark All As Delivery Booked (${selectedItems.length})`"
             @click="markAllAsDeliveryBooked" icon="pi pi-truck" class="ml-4"></Button>
-        <!-- 
-        <Button v-if="selectedItems.length" :label="`Deny All (${selectedItems.length})`" @click="denyAll"
-            icon="pi pi-times-circle" class="ml-4"></Button> -->
-
         <Paginator :rows="selectedRowCount" :totalRecords="totalRecord"
             :rowsPerPageOptions="[10, 25, 50, 100, totalRecord].sort((a, b) => a - b)" @page="handlePageChange">
             <template #start="slotProps">
@@ -87,20 +68,16 @@
                 {{ filterSubs.total  }}
             </template>
         </Paginator>
-        <DataTable v-model:selection="selectedItems" :value="getFilteredData(
-            filterSubs.data)" lazy :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id"
+        <DataTable v-model:selection="selectedItems" :value="filterSubs.data" lazy :loading="loading" tableStyle="min-width: 50rem" showGridlines dataKey="id"
             filterDisplay="menu" v-model:filters="filters">
             <template #header>
                 <div class="flex justify-between">
-
                     <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
                     <IconField>
                         <InputIcon>
                             <i class="pi pi-search" />
                         </InputIcon>
                         <div>
-
-
                             <Button @click="visibleRight = true" label="Filter" class="mr-4" />
                             <!-- v-model="filters['global'].value"  -->
                             <InputText placeholder="Keyword Search" @input="handleSearch" />
@@ -108,7 +85,6 @@
                     </IconField>
                 </div>
             </template>
-
             <template #empty> No filterSubs found. </template>
             <template #loading> Loading filterSubs data. Please wait. </template>
             <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
@@ -131,9 +107,14 @@
                         data.sales_order_no }}
                     </span>
                     <div class="flex items-center">
+                        <div v-if="route().current('subscriptionsToDeliverFilterSubscription')">
+                            <font-awesome-icon v-if="data.hasCallOutService" :icon="['fas', 'toolbox']"
+                                v-tooltip="`Filter Sub (Filter + Call Out Service)`" />
+                            <font-awesome-icon v-else :icon="['fas', 'faucet']"
+                                v-tooltip="`Filter Sub (Filter Only)`" />
+                        </div>
                     <i v-if="data.delivered_or_delivery_booked && data.delivered_or_delivery_booked.value !== null"
                         class="pi pi-truck ml-2"></i>
-
                         <!-- <Avatar v-if="data.odoo_created_by_id"
                             class="ml-2"
                             style="background-color: #ffffff; color: #ffffff" 
@@ -154,7 +135,6 @@
                                     <div v-if="data.delivered_or_delivery_booked && data.delivered_or_delivery_booked.value !== null">
                                         {{ data.delivered_or_delivery_booked?.name || data.delivered_or_delivery_booked
                                         }} 
-                                      
                                     </div>
                                     <div v-else>{{ slotProps.placeholder }}</div>
                                 </div>
@@ -174,10 +154,6 @@
                           v-tooltip="`Last updated by:\n${data.delivered_or_delivery_booked_by.name}`">
                             <img :src="data.delivered_or_delivery_booked_by.profile_photo_url" alt="User Initials" />
                         </Avatar>
-
-
-                     
-                     
                     </div>
                 </template>
             </Column>
@@ -189,33 +165,20 @@
                             @change="handleServiceCode(data)">
                             <template #value="slotProps">
                                 <div v-if="slotProps.value" class="flex align-items-center">
-
-
-
                                     <div
                                         v-if="data.service_code_id.name == '- Unselect -' && data.service_code_id.value == null">
                                         {{ slotProps.placeholder }}
-
                                     </div>
-
                                     <div v-else-if="data.service_code_id && data.service_code_id.value == null">
-                                        <!-- {{ data.service_code.serviceCode }} -->
-                                        <!-- {{ data.service_code.service_code }} -->
                                         <div>{{ data.service_code.service_code }} </div>
                                         <div v-if="data.service_code.total_weight">({{
                                             data.service_code.total_weight }}kg) </div>
-
                                     </div>
-
                                     <div v-else-if="data.service_code_id.value !== null">
-                                        <!-- {{ data.service_code_id?.name || '' }} -->
                                         <div> {{ data.service_code_id?.name || '' }}</div>
                                         <div v-if="data.service_code_id?.totalWeight">({{
                                             data.service_code_id?.totalWeight }}kg) </div>
                                     </div>
-
-
-
                                     <div v-else>{{ slotProps.placeholder }}</div>
                                 </div>
                                 <span v-else>
@@ -227,10 +190,8 @@
                                     <div>{{ slotProps.option.name }} </div>
                                     <div v-if="slotProps.option.totalWeight" class="ml-1">({{
                                         slotProps.option.totalWeight }}kg) </div>
-
                                 </div>
                             </template>
-                      
                         </Select>
                         <Avatar v-if="data.service_code_updated_by_id"
                             class="ml-2"
@@ -238,8 +199,6 @@
                           v-tooltip="`Last updated by:\n${data.service_code_updated_by.name}`">
                             <img :src="data.service_code_updated_by.profile_photo_url" alt="User Initials" />
                         </Avatar>
-                     
-
                     </div>
                 </template>
             </Column>
@@ -271,12 +230,9 @@
                 </template>
             </Column>
             <Column field="state_id" header="State" style="min-width: 10rem">
-
                 <template #body="{ data }">
-                    <!-- {{ formatDate(data.invoice_date) }} -->
                     {{ stateIds[data.state_id - 1]?.name }}
                 </template>
-
             </Column>
             <Column field="phone" header="Phone" style="min-width: 10rem"></Column>
             <Column field="email" header="Email" style="min-width: 10rem"></Column>
@@ -286,63 +242,75 @@
                 </template>
             </Column>
         </DataTable>
-        <!-- 
-        <nes-vue url="https://taiyuuki.github.io/nes-vue/Super Mario Bros (JU).nes" /> -->
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import DataTable from 'primevue/datatable';
+import Avatar from 'primevue/avatar';
+import Button from 'primevue/button';
+import Checkbox from 'primevue/checkbox';
 import Column from 'primevue/column';
+import ConfirmDialog from 'primevue/confirmdialog';
+import DataTable from 'primevue/datatable';
+import DatePicker from 'primevue/datepicker';
+import Drawer from 'primevue/drawer';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
-import Tag from 'primevue/tag';
-import Select from 'primevue/select';
-import Checkbox from 'primevue/checkbox';
-import Button from 'primevue/button';
-import DatePicker from 'primevue/datepicker';
-import { router } from '@inertiajs/vue3';
 import Paginator from 'primevue/paginator';
-import debounce from 'lodash/debounce';
-import Drawer from 'primevue/drawer';
-import axios from 'axios';
-import { useToast } from 'primevue/usetoast'
-import * as XLSX from 'xlsx';
-import 'primeicons/primeicons.css'
+import Select from 'primevue/select';
+import Tag from 'primevue/tag';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
-
-import ConfirmDialog from 'primevue/confirmdialog';
+import { ref, onMounted, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { useConfirm } from "primevue/useconfirm";
-import Avatar from 'primevue/avatar';
-
+import { useToast } from 'primevue/usetoast';
+import * as XLSX from 'xlsx';
+import axios from 'axios';
+import debounce from 'lodash/debounce';
+import 'primeicons/primeicons.css';
 
 const confirm = useConfirm();
-const handleUnlink = (rootSalesOrder, newSalesOrder, newSalesOrderId) =>   {
-    confirm.require({
-        message: `Do you want to unlink #${newSalesOrder} from #${rootSalesOrder}?`,
-        header: 'Unlink Sales Order',
-        icon: 'pi pi-info-circle',
-        rejectLabel: 'Cancel',
-        rejectProps: {
-            label: 'Cancel',
-            severity: 'secondary',
-            outlined: true
-        },
-        acceptProps: {
-            label: 'Unlink',
-            severity: 'danger'
-        },
-        accept: async () => {
-            const response = await axios.delete(`/api/deliverSub/${newSalesOrderId}`);
-            fetchData()
-            toast.add({ severity: 'info', summary: 'Unlinked Successfully', detail: `Unlinked #${newSalesOrder} from #${rootSalesOrder}`, life: 3000 });
-        },
-        reject: () => {}
-    });
-};
+const toast = useToast()
 
+const currentPage = ref(1);
+const dates = ref([]);
+const dropdownOptions = ref([]);
+const filters = ref();
+const loading = ref(true);
+const salesQuotations = ref();
+const selectedActivitySummary = ref([]);
+const selectedCategories = ref([]);
+const selectedCustomerAddress = ref();
+const selectedCustomerContactAddress = ref([]);
+const selectedCustomerName = ref();
+const selectedItems = ref([]);
+const selectedRowCount = ref(100);
+const selectedSalesOrder = ref();
+const selectedSalesOrderId = ref();
+const selectedSalesOrderLines = ref();
+const selectedStateIds = ref([]);
+const serviceCodeDropdownOptions = ref([]);
+const stateIds = ref([]);
+const totalRecord = ref(0);
+const visible = ref(false);
+const visibleRight = ref(false);
+const search = ref();
+
+const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter" },
+{ "id": 2, "name": "Independent 3 + 3 Due for Change" },
+{ "id": 3, "name": "Independent 3 + 3 Expires" },
+{ "id": 4, "name": "3 + 3 Stage Filter" },
+{ "id": 5, "name": "3 Stage Filter" },
+{ "id": 6, "name": "3 + 3 Stage Filter Expires" },
+{ "id": 7, "name": "3 Stage Filter Expires" },
+{ "id": 8, "name": "Final Date to Order Filters for Warranty Extension" },
+]);
+
+const dropdownDeliveredOrBooked = ref([
+    { name: 'Delivery Booked', value: 'Delivery Booked' },
+    { name: '- Unselect -', value: null },
+]);
 
 let props = defineProps({
     filterSubs: Object,
@@ -353,53 +321,6 @@ let props = defineProps({
     serviceCodes: Object,
     filters: Object,
 });
-
-const selectedItems = ref([]);
-const loading = ref(true);
-const currentPage = ref(1);
-const totalRecord = ref(0);
-const search = ref();
-const visible = ref(false);
-const visibleRight = ref(false);
-const salesQuotations = ref();
-const dropdownOptions = ref([]);
-const toast = useToast()
-const stateIds = ref([])
-const selectedSalesOrderId = ref();
-const selectedSalesOrderLines = ref();
-const selectedCustomerName = ref();
-const selectedCustomerAddress = ref();
-const selectedCustomerContactAddress = ref([]);
-const serviceCodeDropdownOptions = ref([]);
-const selectedType = ref()
-const categoryTypes = ref([{ "id": 1, "name": "Subscription", },
-    //  { "id": 2, "name": "1st Stage Filter Only", },
-]);
-const activitySummaryTypes = ref([{ "id": 1, "name": "Send 1st Stage Filter" },
-{ "id": 2, "name": "Independent 3 + 3 Due for Change" },
-{ "id": 3, "name": "Independent 3 + 3 Expires" },
-{ "id": 4, "name": "3 + 3 Stage Filter" },
-{ "id": 5, "name": "3 Stage Filter" },
-{ "id": 6, "name": "3 + 3 Stage Filter Expires" },
-{ "id": 7, "name": "3 Stage Filter Expires" },
-{ "id": 8, "name": "Final Date to Order Filters for Warranty Extension" },
-]);
-const dropdownRequireDelivery = ref([
-    { name: 'Confirm', value: 'Confirm' },
-    { name: 'Deny', value: 'Deny' },
-    { name: '- Unselect -', value: null },
-]);
-const dropdownDeliveredOrBooked = ref([
-    { name: 'Delivery Booked', value: 'Delivery Booked' },
-    { name: '- Unselect -', value: null },
-]);
-const dates = ref([]);
-const selectedSalesOrder = ref();
-const selectedStateIds = ref([])
-const selectedActivitySummary = ref([])
-const selectedCategories = ref([])
-const selectedRowCount = ref(100)
-const filters = ref();
 
 onMounted(() => {
     loading.value = false;
@@ -412,14 +333,8 @@ onMounted(() => {
         value: item.id,
         totalWeight: item.total_weight
     })
-
-
     );
     serviceCodeDropdownOptions.value.push({ name: '- Unselect -', value: null, totalWeight: null });
-
-    console.log('aaaaaaaaa')
-    console.log(props.serviceCodes)
-    console.log('zzzzzzzzzzz')
 });
 
 const initFilters = () => {
@@ -428,26 +343,126 @@ const initFilters = () => {
         due_date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
     };
 };
+
 initFilters();
 
-const handlePageChange = (event) => {
-    selectedRowCount.value = event.rows
-    currentPage.value = event.page + 1 // Adjusting because page index is 0-based
-    console.log('page change')
-    console.log(currentPage.value)
-    fetchData()
-}
+watch(selectedSalesOrderId, async (newSalesOrderId) => {
+    if (newSalesOrderId) {
+        try {
+            const response = await axios.get('/api/findSalesOrdersBySalesOrderNo', {
+                params: {
+                    'sales_order_no': newSalesOrderId
+                }
+            });
+            dropdownOptions.value = response.data.map(item => ({
+                name: item.sales_order_no,
+                value: item.sales_order_no,
 
-const handleSearch = (event) => {
-    search.value = event.target.value;
-    console.log(event.target.value);
-    debouncedFetchData();  // Call the debounced function
+            })
+            );
+            dropdownOptions.value.push({ name: '- Unselect -', value: null });
+        } catch (error) {
+            console.error('Error fetching dropdown options:', error);
+        }
+    }
+});
+
+watch([
+    () => dates.value,
+    () => selectedStateIds.value,
+    () => selectedActivitySummary.value,
+    () => selectedCategories.value,
+    () => filters.value
+], () => {
+    fetchData();
+});
+
+const clearFilter = () => {
+    initFilters();
+};
+
+const downloadCSV = async (selectedItems) => {
+    // Define custom headers and corresponding columns
+    const headers = {
+        'Record Type': 'recordType',//A
+        'Receiver Code': 'receiverCode',//B
+        'Receiver Name': 'customer_name', //C
+        'Receiver Address 1': 'street', //D
+        'Receiver Address 2': 'street2', //E
+        'Receiver Address 3': 'receiverAddress3',//F
+        'Receiver Suburb': 'city',   //G
+        'Receiver Postcode': 'zip',  //H
+        'Receiver Contact': 'receiverContact',//I
+        'Receiver Phone': 'phone', //J
+        'Email': 'email', //K
+        'Reference 1': 'sales_order_no', //L
+        'Reference 2': '', //M
+        'Special Instructions': '', //N
+        'Service Code': 'serviceCode',
+        'Number of Items': 'numberOfItems',
+        'Total Weight': 'totalWeight',
+        'Total Cubic Volume': 'totalCubicVolume',
+        'Authority to Leave': 'authorityToLeave', //S
+    };
+
+    try {
+    const response = await axios.post('/api/getDeliverySubByIds', {
+                 deliverSubIds: selectedItems
+    });
+    if (response.status === 200) {
+    // Map JSON data to include only selected columns with custom headers
+    const mappedData = response.data.deliverSubs.map(item => {
+        item.recordType = 'C'
+        item.receiverCode = null
+        item.street = item['contact_address'][0].street  ///compareAddresses(item['address'], item['contact_address'][0].complete_address)
+        item.street2 = item['contact_address'][0].street2
+        item.receiverAddress3 = null
+        item.city = item['contact_address'][0].city
+        item.zip = item['contact_address'][0].zip
+        item.receiverContact = item.customer_name
+        item.reference2 = null
+        item.specialInstructions = null
+        item.serviceCode = item.service_code?.service_code //'TB1'
+        item.numberOfItems = item.service_code?.number_of_items
+        item.totalWeight =  item.service_code?.total_weight
+        item.totalCubicVolume =  item.service_code?.total_cubit_volume
+        item.authorityToLeave = 'Y'
+
+        let newItem = {};
+        for (const [header, key] of Object.entries(headers)) {
+            newItem[header] = item[key]
+        }
+        return newItem;
+    });
+
+    // Convert the mapped data to a worksheet
+    const ws = XLSX.utils.json_to_sheet(mappedData);
+
+    // Create a new workbook and append the worksheet
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+    // Generate CSV file and initiate download
+    const csvOutput = XLSX.utils.sheet_to_csv(ws);
+    const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'subs_to_deliver.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    } else {
+            toast.error('Error: Unable to fetch delivery subscriptions.');
+    }
+    } catch (error) {
+         toast.error('Error: ' + (error.response?.data?.message || 'Network Error'));
+    }
 };
 
 const fetchData = async () => {
     try {
-        console.log('fetch data page')
-        console.log(currentPage.value)
         const response = await router.get('/subscriptionsToDeliver', {
             page: currentPage.value,
             search: search.value,
@@ -461,8 +476,6 @@ const fetchData = async () => {
             preserveState: true,
             replace: false,
             onSuccess: (newData) => {
-                console.log(newData)
-                console.log(newData.props.filterSubs.total)
                 totalRecord.value = newData.props.filterSubs.total
             },
         })
@@ -474,37 +487,7 @@ const fetchData = async () => {
     }
 }
 
-const debouncedFetchData = debounce(async () => {
-    try {
-        console.log('fetch data page');
-        console.log(currentPage.value);
-        const response = await router.get('/subscriptionsToDeliver', {
-            page: currentPage.value,
-            search: search.value,
-            dates: dates.value,
-            stateId: selectedStateIds.value,
-            activitySummary: selectedActivitySummary.value,
-            categories: selectedCategories.value,
-            perPage: selectedRowCount.value,
-            filters: JSON.stringify(filters.value), 
-        }, {
-            preserveState: true,
-            replace: false,
-            onSuccess: (newData) => {
-                console.log(newData);
-                console.log(newData.props.filterSubs.total);
-                totalRecord.value = newData.props.filterSubs.total;
-            },
-        });
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    } finally {
-        loading.value = false;
-    }
-}, 300);
-
-
-
+const debouncedFetchData = debounce(fetchData, 300);
 
 const formatDate = (dateStr) => (dateStr ? new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null);
 
@@ -525,77 +508,27 @@ const formatStates = (selectedStatesIds) => {
         .join(', ');
 }
 
-const formatCurrency = (value) => {
-    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-};
-const clearFilter = () => {
-    initFilters();
-};
 
 const handleCellClick = (salesOrder) => {
-
     visible.value = true
     selectedSalesOrderId.value = salesOrder.sales_order_no
     selectedSalesOrderLines.value = salesOrder.order_line
     selectedCustomerName.value = salesOrder.customer_name
     selectedCustomerAddress.value = salesOrder.address
     selectedCustomerContactAddress.value = salesOrder.contact_address
-
     selectedSalesOrder.value = salesOrder;
-    // Handle the click event here
-    // console.log('Clicked sales order:', salesOrderNo);
-    // Perform any desired actions, such as navigation or data manipulation
 }
 
-const handleSelectClickOdooCreatedBy = (salesOrder) => {
-    selectedSalesOrderId.value = salesOrder.sales_order_no
-    console.log('Select clicked', event);
-    // Your custom logic here
+const handlePageChange = (event) => {
+    selectedRowCount.value = event.rows
+    currentPage.value = event.page + 1 // Adjusting because page index is 0-based
+    fetchData()
 }
 
-const handleSelectChangeOdooCreatedBy = async (salesOrder) => {
-    try {
-        const response = await axios.put(`/api/updateCreatedOnOdooInFilterSubs/${salesOrder.id}`, {
-            created_on_odoo: salesOrder.created_on_odoo.value,
-            odoo_created_by_id: props.currentUser.id,
-
-        });
-        console.log('a')
-        console.log(salesOrder)
-        console.log('z')
-        console.log(response)
-
-        console.log('handle select change')
-        toast.add({ severity: 'success', summary: `Moved #${salesOrder.sales_order_no} for Confirm Delivery Requirement`, detail: '', life: 3000 })
-    } catch (error) {
-        console.error('Failed to update created_on_odoo:', error);
-        toast.add({ severity: 'error', summary: 'Failed to update', detail: '', life: 3000 })
-    }
-}
-
-
-const handleSelectChangeDeliveryConfimation = async (salesOrder) => {
-    try {
-        const response = await axios.put(`/api/updateRequiredDeliveryInDeliverSubs/${salesOrder.id}`, {
-            delivered_or_delivery_booked: salesOrder.delivered_or_delivery_booked.value,
-            delivered_or_delivery_booked_by_id: props.currentUser.id,
-        });
-
-
-        if (salesOrder.delivered_or_delivery_booked?.value === 'Confirm') {
-            // toast.add({ severity: 'success', summary: `Added #${salesOrder.sales_order_no} to Subscriptions to Deliver`, detail: '', life: 3000 })
-        } else {
-            toast.add({ severity: 'success', summary: `Updated #${salesOrder.sales_order_no} delivery status`, detail: '', life: 3000 })
-        }
-
-    } catch (error) {
-        // Handle error
-        console.error('Failed to update delivered_or_delivery_booked:', error);
-        toast.add({ severity: 'error', summary: 'Failed Message', detail: 'Message Content', life: 3000 })
-        // this.$toast.add({ severity: 'error', summary: 'Update Failed', detail: 'Failed to update Created on Odoo.' });
-    }
-}
-
+const handleSearch = (event) => {
+    search.value = event.target.value;
+    debouncedFetchData();  // Call the debounced function
+};
 
 const handleSelectChangeDeliveredOrDeliveryBooked = async (salesOrder) => {
     try {
@@ -626,8 +559,6 @@ const handleSelectChangeDeliveredOrDeliveryBooked = async (salesOrder) => {
 
 const handleServiceCode = async (salesOrder) => {
     try {
-
-        console.log(salesOrder)
         const response = await axios.put(`/api/updateServiceCode/${salesOrder.id}`, {
             service_code_id: salesOrder.service_code_id.value,
             service_code_updated_by_id: props.currentUser.id,
@@ -655,208 +586,33 @@ const handleServiceCode = async (salesOrder) => {
     }
 }
 
-watch(selectedSalesOrderId, async (newSalesOrderId) => {
-    if (newSalesOrderId) {
-        try {
-            // dropdownOptions.value = []
-            const response = await axios.get('/api/findSalesOrdersBySalesOrderNo', {
-                params: {
-                    'sales_order_no': newSalesOrderId
-                }
-            });
-            console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZZZZZZZZZZZZZZZZZZZZZ')
-            console.log(response)
-            console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-            dropdownOptions.value = response.data.map(item => ({
-                name: item.sales_order_no,
-                value: item.sales_order_no,
-
-            })
-
-
-            );
-            dropdownOptions.value.push({ name: '- Unselect -', value: null });
-        } catch (error) {
-            console.error('Error fetching dropdown options:', error);
-        }
-    }
-});
-
-watch(selectedStateIds, async (newStateId) => {
-    console.log('changed state, load fetch data 1')
-    if (newStateId) {
-        console.log('changed state, load fetch data 2')
-        fetchData()
-    }
-});
-
-watch(selectedActivitySummary, async (newActivitySummary) => {
-    console.log('changed state, load fetch data 1')
-    if (newActivitySummary) {
-        console.log('changed state, load fetch data 2')
-        fetchData()
-    }
-});
-
-watch(dates, async (nesDates) => {
-    console.log('changed date, load fetch data 1')
-    if (nesDates) {
-        console.log('changed date, load fetch data 2')
-        fetchData()
-
-    }
-});
-
-watch(selectedCategories, async (newCategory) => {
-    console.log('changed date, load fetch data 1')
-    if (newCategory) {
-        console.log('changed date, load fetch data 2')
-        fetchData()
-
-    }
-});
-
-
-watch(filters, async (newFilters) => {
-    console.log('changed date, load fetch data 1')
-    if (newFilters) {
-        console.log('changed date, load fetch data 2')
-        fetchData()
-    }
-});
-
-const getFilteredData = (data) => {
-    return data
-    // .filter(item => item.delivered_or_delivery_booked === 'Confirm' ||
-    //     item.delivered_or_delivery_booked?.value === 'Confirm'
-    // );
-}
-
-const downloadCSV = async (selectedItems) => {
-    // Define custom headers and corresponding columns
-    const headers = {
-        'Record Type': 'recordType',//A
-        'Receiver Code': 'receiverCode',//B
-        'Receiver Name': 'customer_name', //C
-        'Receiver Address 1': 'street', //D
-        'Receiver Address 2': 'street2', //E
-        'Receiver Address 3': 'receiverAddress3',//F
-        'Receiver Suburb': 'city',   //G
-        'Receiver Postcode': 'zip',  //H
-        'Receiver Contact': 'receiverContact',//I
-        'Receiver Phone': 'phone', //J
-        'Email': 'email', //K
-        'Reference 1': 'sales_order_no', //L
-        'Reference 2': '', //M
-        'Special Instructions': '', //N
-        'Service Code': 'serviceCode',
-        'Number of Items': 'numberOfItems',
-        'Total Weight': 'totalWeight',
-        'Total Cubic Volume': 'totalCubicVolume',
-        'Authority to Leave': 'authorityToLeave', //S
-    };
-
-    try {
-
-        
-const response = await axios.post('/api/getDeliverySubByIds', {
-                 deliverSubIds: selectedItems
-                
-            });
-
-        if (response.status === 200) {
-            console.log(response.data)
-            console.log(response.data.deliverSubs)
-            console.log('haha')
-    // Map JSON data to include only selected columns with custom headers
-    const mappedData = response.data.deliverSubs.map(item => {
-        // console.log('A')
-        // console.log(item['address'])
-        // console.log(item['contact_address'].complete_address)
-        console.log('batmannnn')
-        console.log(item)
-        console.log(item['contact_address'])
-        item.recordType = 'C'
-        item.receiverCode = null
-        item.street = item['contact_address'][0].street  ///compareAddresses(item['address'], item['contact_address'][0].complete_address)
-        item.street2 = item['contact_address'][0].street2
-        item.receiverAddress3 = null
-        item.city = item['contact_address'][0].city
-        item.zip = item['contact_address'][0].zip
-        item.receiverContact = item.customer_name
-        item.reference2 = null
-        item.specialInstructions = null
-        item.serviceCode = item.service_code?.service_code //'TB1'
-        item.numberOfItems = item.service_code?.number_of_items
-        item.totalWeight =  item.service_code?.total_weight
-        item.totalCubicVolume =  item.service_code?.total_cubit_volume
-        item.authorityToLeave = 'Y'
-
-        let newItem = {};
-        for (const [header, key] of Object.entries(headers)) {
-            newItem[header] = item[key]
-        }
-
-        console.log(newItem)
-        return newItem;
+const handleUnlink = (rootSalesOrder, newSalesOrder, newSalesOrderId) =>   {
+    confirm.require({
+        message: `Do you want to unlink #${newSalesOrder} from #${rootSalesOrder}?`,
+        header: 'Unlink Sales Order',
+        icon: 'pi pi-info-circle',
+        rejectLabel: 'Cancel',
+        rejectProps: {
+            label: 'Cancel',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: 'Unlink',
+            severity: 'danger'
+        },
+        accept: async () => {
+            const response = await axios.delete(`/api/deliverSub/${newSalesOrderId}`);
+            fetchData()
+            toast.add({ severity: 'info', summary: 'Unlinked Successfully', detail: `Unlinked #${newSalesOrder} from #${rootSalesOrder}`, life: 3000 });
+        },
+        reject: () => {}
     });
-
-    // Convert the mapped data to a worksheet
-    const ws = XLSX.utils.json_to_sheet(mappedData);
-
-    // Create a new workbook and append the worksheet
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-
-    // Generate CSV file and initiate download
-    const csvOutput = XLSX.utils.sheet_to_csv(ws);
-    const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'subs_to_deliver.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-} else {
-            // Show error toast
-            toast.error('Error: Unable to fetch delivery subscriptions.');
-        }
-    } catch (error) {
-         toast.error('Error: ' + (error.response?.data?.message || 'Network Error'));
-    }
-
-
-
-   
-      
-
-};
-
-function compareAddresses(originalAddress, contactAddress,
-    // childAddress, parentAddress
-) {
-    // Split the addresses into individual components
-    const originalAddressComponents = originalAddress.split('\n');
-    const contactAddressComponents = contactAddress.split(',');
-
-    // Compare the first component (street number)
-    if (originalAddressComponents[0] === contactAddressComponents[0] || originalAddressComponents[1] === contactAddressComponents[0]) {
-        return contactAddress;
-    }
-
-    // If the first component matches, the addresses are equal
-    return originalAddress;
-}
-
-const selectAll = async (deliverSubIds) => {
-    selectedItems.value = deliverSubIds
 };
 
 const markAllAsDeliveryBooked = async () => {
     var selectedItemIds = selectedItems.value.map(e => e.id);
-    console.log(selectedItemIds)
+
     const data = JSON.stringify({
         deliverSubIds: selectedItemIds,
         delivered_or_delivery_booked_by_id: props.currentUser.id
@@ -869,4 +625,7 @@ const markAllAsDeliveryBooked = async () => {
     selectedItems.value = []
 };
 
+const selectAll = async (deliverSubIds) => {
+    selectedItems.value = deliverSubIds
+};
 </script>

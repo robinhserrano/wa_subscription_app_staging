@@ -83,15 +83,21 @@ Route::middleware([
             });
         }
 
-        $filterSubs = $query->with('orderLine', 'contactAddress',)->orderBy($sortBy, $sortOrder)->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
+        $filterSubs = $query->with('orderLine', 'contactAddress',)->orderBy($sortBy, $sortOrder);
+
+        $filterSubIds = $filterSubs->pluck('id')->map(function ($id) {
+            return ['id' => $id];
+        })->values()->all();
+
+        $filterSubsPaginated = $filterSubs->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
 
         $stateIds = Cache::remember('state_ids', 60, function () {
             return StateId::all()->sortByDesc('state_id');
         });
 
         return Inertia::render('Dashboard', [
-            'filterSubIds' => $query->pluck('id'),
-            'filterSubs' =>  $filterSubs,
+            'filterSubIds' => $filterSubIds,
+            'filterSubs' =>  $filterSubsPaginated,
             'stateIds' => $stateIds,
             'filters' => $filters,
         ]);
@@ -300,20 +306,25 @@ Route::middleware([
             });
         }
 
-        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'serviceCode', 'deliveredOrDeliveryBookedBy', 'serviceCodeUpdatedBy')->orderBy($sortBy, $sortOrder)->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
+        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'serviceCode', 'deliveredOrDeliveryBookedBy', 'serviceCodeUpdatedBy')->orderBy($sortBy, $sortOrder);
+
+        $filterSubIds = $filterSubs->pluck('id')->map(function ($id) {
+            return ['id' => $id];
+        })->values()->all();
+
+        $filterSubsPaginated = $filterSubs->paginate($perPage, ['*'], 'page', $currentPage)->withQueryString();
 
         $stateIds = Cache::remember('state_ids', 60, function () {
             return StateId::all()->sortByDesc('state_id');
         });
-
 
         $serviceCodes = Cache::remember('service_code', 60, function () {
             return ServiceCode::all();
         });
 
         return Inertia::render('SubscriptionsToDeliver', [
-            'filterSubIds' => $query->pluck('id'),
-            'filterSubs' =>  $filterSubs,
+            'filterSubIds' => $filterSubIds,
+            'filterSubs' =>  $filterSubsPaginated,
             'stateIds' => $stateIds,
             'serviceCodes' => $serviceCodes,
             'filters' => $filters,

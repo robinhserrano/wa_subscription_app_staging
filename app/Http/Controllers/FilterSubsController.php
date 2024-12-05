@@ -248,4 +248,19 @@ class FilterSubsController extends Controller
             // return response()->json(['error' => 'Failed to update CreatedOnOdoo in Sales Order:'], 404);
         }
     }
+
+    public function getFilterSubByIds(Request $request)
+    {
+        try {
+            $data = json_decode($request->getContent(), true); // Assuming JSON data
+            
+            $ids = array_column($data['filterSubIds'], 'id');
+
+            $filterSubs = FilterSubs::with('orderLine','contactAddress')->whereIn('id', $ids)->get();
+
+            return response()->json(['filterSubs' => $filterSubs, 'message' => 'Filter subs retrieved successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Filter subs not found'], 404);
+        }
+    }
 }
