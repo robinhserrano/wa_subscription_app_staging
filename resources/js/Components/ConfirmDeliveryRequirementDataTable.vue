@@ -383,7 +383,8 @@ const fetchData = async () => {
     try {
         console.log('fetch data page')
         console.log(currentPage.value)
-        const response = router.get('/confirmDeliveryRequirement', {
+        var url = route().current('confirmDeliveryFilterSubscription') ? '/confirmDeliveryFilterSubscription' : '/confirmDeliveryRequirement'
+        const response = router.get(url, {
             page: currentPage.value,
             search: search.value,
             dates: dates.value,

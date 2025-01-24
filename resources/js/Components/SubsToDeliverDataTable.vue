@@ -463,7 +463,8 @@ const downloadCSV = async (selectedItems) => {
 
 const fetchData = async () => {
     try {
-        const response = await router.get('/subscriptionsToDeliver', {
+        var url = route().current('subscriptionsToDeliverFilterSubscription') ? '/subscriptionsToDeliverFilterSubscription' : '/subscriptionsToDeliver'
+        const response = router.get(url, {
             page: currentPage.value,
             search: search.value,
             dates: dates.value,
