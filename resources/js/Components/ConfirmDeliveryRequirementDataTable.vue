@@ -168,7 +168,7 @@
             </Column>
             <Column field="customer_name" header="Customer Name" style="min-width: 10rem" filterField="customer_name">
             </Column>
-            <Column field="address" header="Address" style="min-width: 10rem"></Column>
+            <Column field="address" header="Delivery Address" style="min-width: 10rem"></Column>
             <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem"></Column>
             <Column field="start_date" header="Start Date" style="min-width: 10rem" filterField="start_date"
                 dataType="date">

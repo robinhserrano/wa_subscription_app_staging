@@ -175,7 +175,7 @@
             </Column> -->
             <Column field="customer_name" header="Customer Name" style="min-width: 10rem" filterField="customer_name">
             </Column>
-            <Column field="address" header="Address" style="min-width: 10rem"></Column>
+            <Column field="address" header="Delivery Address" style="min-width: 10rem"></Column>
             <Column field="activity_summary" header="Activity Summary" style="min-width: 10rem"></Column>
             <Column field="due_date" header="Due Date" style="min-width: 10rem" filterField="due_date" dataType="date">
                 <template #body="{ data }">
