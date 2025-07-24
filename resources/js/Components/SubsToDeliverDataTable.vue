@@ -412,13 +412,15 @@ const downloadCSV = async (selectedItems) => {
     if (response.status === 200) {
     // Map JSON data to include only selected columns with custom headers
     const mappedData = response.data.deliverSubs.map(item => {
+        const contactAddress = item.contact_address && item.contact_address.length > 0 ? item.contact_address[0] : null;
+
         item.recordType = 'C'
         item.receiverCode = null
-        item.street = (item.contact_address?.[0]?.street === "undefined" || item.contact_address?.[0]?.street === null || item.contact_address?.[0]?.street === undefined) ? '' : item.contact_address?.[0]?.street;
-        item.street2 = (item.contact_address?.[0]?.street2 === "undefined" || item.contact_address?.[0]?.street2 === null || item.contact_address?.[0]?.street2 === undefined) ? '' : item.contact_address?.[0]?.street2;
+        item.street = contactAddress?.street || '', 
+        item.street2 = contactAddress?.street2 || '',
         item.receiverAddress3 = null
-        item.city = item.contact_address?.[0]?.city || ''
-        item.zip = item.contact_address?.[0]?.zip || ''
+        item.city = contactAddress?.city || ''
+        item.zip = contactAddress?.zip || ''
         item.receiverContact = item.customer_name || ''
         item.reference2 = null
         item.specialInstructions = null
