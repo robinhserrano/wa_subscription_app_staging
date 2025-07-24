@@ -414,8 +414,8 @@ const downloadCSV = async (selectedItems) => {
     const mappedData = response.data.deliverSubs.map(item => {
         item.recordType = 'C'
         item.receiverCode = null
-        item.street = item.contact_address?.[0]?.street || '' 
-        item.street2 = item.contact_address?.[0]?.street2 || ''
+        item.street = (item.contact_address?.[0]?.street === "undefined" || item.contact_address?.[0]?.street === null || item.contact_address?.[0]?.street === undefined) ? '' : item.contact_address?.[0]?.street;
+        item.street2 = (item.contact_address?.[0]?.street2 === "undefined" || item.contact_address?.[0]?.street2 === null || item.contact_address?.[0]?.street2 === undefined) ? '' : item.contact_address?.[0]?.street2;
         item.receiverAddress3 = null
         item.city = item.contact_address?.[0]?.city || ''
         item.zip = item.contact_address?.[0]?.zip || ''
