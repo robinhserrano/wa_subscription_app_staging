@@ -414,18 +414,18 @@ const downloadCSV = async (selectedItems) => {
     const mappedData = response.data.deliverSubs.map(item => {
         item.recordType = 'C'
         item.receiverCode = null
-        item.street = item['contact_address'][0].street  ///compareAddresses(item['address'], item['contact_address'][0].complete_address)
-        item.street2 = item['contact_address'][0].street2
+        item.street = item['contact_address'][0].street || '' ///compareAddresses(item['address'], item['contact_address'][0].complete_address)
+        item.street2 = item['contact_address'][0].street2 || ''
         item.receiverAddress3 = null
-        item.city = item['contact_address'][0].city
-        item.zip = item['contact_address'][0].zip
-        item.receiverContact = item.customer_name
+        item.city = item['contact_address'][0].city|| ''
+        item.zip = item['contact_address'][0].zip|| ''
+        item.receiverContact = item.customer_name || ''
         item.reference2 = null
         item.specialInstructions = null
-        item.serviceCode = item.service_code?.service_code //'TB1'
-        item.numberOfItems = item.service_code?.number_of_items
-        item.totalWeight =  item.service_code?.total_weight
-        item.totalCubicVolume =  item.service_code?.total_cubit_volume
+        item.serviceCode = item.service_code?.service_code  || ''
+        item.numberOfItems = item.service_code?.number_of_items || 0
+        item.totalWeight =  item.service_code?.total_weight || 0
+        item.totalCubicVolume =  item.service_code?.total_cubic_volume || 0
         item.authorityToLeave = 'Y'
 
         let newItem = {};
