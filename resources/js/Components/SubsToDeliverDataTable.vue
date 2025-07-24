@@ -416,11 +416,11 @@ const downloadCSV = async (selectedItems) => {
 
         item.recordType = 'C'
         item.receiverCode = null
-        item.street = contactAddress?.street || '', 
-        item.street2 = contactAddress?.street2 || '',
+        item.street = contactAddress?.street ?? '', 
+        item.street2 = contactAddress?.street2 ?? '',
         item.receiverAddress3 = null
-        item.city = contactAddress?.city || ''
-        item.zip = contactAddress?.zip || ''
+        item.city = contactAddress?.city ?? ''
+        item.zip = contactAddress?.zip ?? ''
         item.receiverContact = item.customer_name || ''
         item.reference2 = null
         item.specialInstructions = null
