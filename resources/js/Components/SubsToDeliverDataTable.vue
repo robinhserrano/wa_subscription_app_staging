@@ -412,7 +412,7 @@ const downloadCSV = async (selectedItems) => {
     if (response.status === 200) {
     // Map JSON data to include only selected columns with custom headers
     const mappedData = response.data.deliverSubs.map(item => {
-        const contactAddress = item.contact_address && item.contact_address.length > 0 ? item.contact_address[0] : null;
+        const contactAddress = Array.isArray(item.contact_address) && item.contact_address.length > 0 ? item.contact_address[0] : null;
 
         item.recordType = 'C'
         item.receiverCode = null
