@@ -406,61 +406,61 @@ const downloadCSV = async (selectedItems) => {
     };
 
     try {
-    const response = await axios.post('/api/getDeliverySubByIds', {
-                 deliverSubIds: selectedItems
-    });
-    if (response.status === 200) {
-    // Map JSON data to include only selected columns with custom headers
-    const mappedData = response.data.deliverSubs.map(item => {
-        // Safely get the first contact address, or an empty object if it doesn't exist
-        const contactAddress = item.contact_address?.[0] || {};
+        const response = await axios.post('/api/getDeliverySubByIds', {
+            deliverSubIds: selectedItems
+        });
+        if (response.status === 200) {
+            // Map JSON data to include only selected columns with custom headers
+            const mappedData = response.data.deliverSubs.map(item => {
+                // Safely get the first contact address, or an empty object if it doesn't exist
+                const contactAddress = item.contact_address?.[0] || {};
 
-        item.recordType = 'C';
-        item.receiverCode = null;
-        item.street = contactAddress.street ?? '';
-        item.street2 = contactAddress.street2 ?? '';
-        item.receiverAddress3 = null;
-        item.city = contactAddress.city ?? '';
-        item.zip = contactAddress.zip ?? '';
-        item.receiverContact = item.customer_name || '';
-        item.reference2 = null;
-        item.specialInstructions = null;
-        item.serviceCode = item.service_code?.service_code || '';
-        item.numberOfItems = item.service_code?.number_of_items || 0;
-        item.totalWeight = item.service_code?.total_weight || 0;
-        item.totalCubicVolume = item.service_code?.total_cubic_volume || 0;
-        item.authorityToLeave = 'Y';
+                item.recordType = 'C';
+                item.receiverCode = null;
+                item.street = contactAddress.street ?? ''; // Safely access street
+                item.street2 = contactAddress.street2 ?? ''; // Safely access street2
+                item.receiverAddress3 = null;
+                item.city = contactAddress.city ?? ''; // Safely access city
+                item.zip = contactAddress.zip ?? ''; // Safely access zip
+                item.receiverContact = item.customer_name || '';
+                item.reference2 = null;
+                item.specialInstructions = null;
+                item.serviceCode = item.service_code?.service_code || '';
+                item.numberOfItems = item.service_code?.number_of_items || 0;
+                item.totalWeight = item.service_code?.total_weight || 0;
+                item.totalCubicVolume = item.service_code?.total_cubic_volume || 0;
+                item.authorityToLeave = 'Y';
 
-        let newItem = {};
-        for (const [header, key] of Object.entries(headers)) {
-            newItem[header] = item[key]
-        }
-        return newItem;
-    });
+                let newItem = {};
+                for (const [header, key] of Object.entries(headers)) {
+                    newItem[header] = item[key]
+                }
+                return newItem;
+            });
 
-    // Convert the mapped data to a worksheet
-    const ws = XLSX.utils.json_to_sheet(mappedData);
+            // Convert the mapped data to a worksheet
+            const ws = XLSX.utils.json_to_sheet(mappedData);
 
-    // Create a new workbook and append the worksheet
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            // Create a new workbook and append the worksheet
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
 
-    // Generate CSV file and initiate download
-    const csvOutput = XLSX.utils.sheet_to_csv(ws);
-    const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+            // Generate CSV file and initiate download
+            const csvOutput = XLSX.utils.sheet_to_csv(ws);
+            const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
 
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'subs_to_deliver.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    } else {
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'subs_to_deliver.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
             toast.error('Error: Unable to fetch delivery subscriptions.');
-    }
+        }
     } catch (error) {
-         toast.error('Error: ' + (error.response?.data?.message || 'Network Error'));
+        toast.error('Error: ' + (error.response?.data?.message || 'Network Error'));
     }
 };
 
