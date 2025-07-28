@@ -13,22 +13,24 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 
-function applyDateConstraints($query, $constraints, $dateField)
-{
-    $operators = [
-        'dateBefore' => '<',
-        'dateAfter' => '>',
-        'dateIs' => '=',
-        'dateIsNot' => '!=',
-    ];
+if (!function_exists('applyDateConstraints')) {
+    function applyDateConstraints($query, $constraints, $dateField)
+    {
+        $operators = [
+            'dateBefore' => '<',
+            'dateAfter' => '>',
+            'dateIs' => '=',
+            'dateIsNot' => '!=',
+        ];
 
-    foreach ($constraints as $constraint) {
-        if ($constraint['value'] !== null && isset($operators[$constraint['matchMode']])) {
-            $adjustedValue = Carbon::parse($constraint['value'])->addHours(8);
+        foreach ($constraints as $constraint) {
+            if ($constraint['value'] !== null && isset($operators[$constraint['matchMode']])) {
+                $adjustedValue = Carbon::parse($constraint['value'])->addHours(8);
 
-            $query->where($dateField, $operators[$constraint['matchMode']], $adjustedValue);
+                $query->where($dateField, $operators[$constraint['matchMode']], $adjustedValue);
 
-            $query->orderBy('customer_name', 'asc');
+                $query->orderBy('customer_name', 'asc');
+            }
         }
     }
 }
@@ -306,7 +308,7 @@ Route::middleware([
             });
         }
 
-        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'serviceCode', 'deliveredOrDeliveryBookedBy', 'serviceCodeUpdatedBy')->orderBy($sortBy, $sortOrder);
+        $filterSubs = $query->with('orderLine', 'contactAddress', 'rootSalesOrder', 'serviceCode', 'deliveredOrDeliveryBookedBy', 'serviceCodeUpdatedBy', 'odooCreatedBy')->orderBy($sortBy, $sortOrder);
 
         $filterSubIds = $filterSubs->pluck('id')->map(function ($id) {
             return ['id' => $id];
