@@ -412,26 +412,24 @@ const downloadCSV = async (selectedItems) => {
     if (response.status === 200) {
     // Map JSON data to include only selected columns with custom headers
     const mappedData = response.data.deliverSubs.map(item => {
-        let contactAddress = null;
-        if (Array.isArray(item.contact_address) && item.contact_address.length > 0 && item.contact_address[0]) {
-            contactAddress = item.contact_address[0];
-        }
+        // Safely get the first contact address, or an empty object if it doesn't exist
+        const contactAddress = item.contact_address?.[0] || {};
 
-        item.recordType = 'C'
-        item.receiverCode = null
-        item.street = contactAddress?.street ?? '', 
-        item.street2 = contactAddress?.street2 ?? '',
-        item.receiverAddress3 = null
-        item.city = contactAddress?.city ?? ''
-        item.zip = contactAddress?.zip ?? ''
-        item.receiverContact = item.customer_name || ''
-        item.reference2 = null
-        item.specialInstructions = null
-        item.serviceCode = item.service_code?.service_code || ''
-        item.numberOfItems = item.service_code?.number_of_items || 0
-        item.totalWeight = item.service_code?.total_weight || 0
-        item.totalCubicVolume = item.service_code?.total_cubic_volume || 0
-        item.authorityToLeave = 'Y'
+        item.recordType = 'C';
+        item.receiverCode = null;
+        item.street = contactAddress.street ?? '';
+        item.street2 = contactAddress.street2 ?? '';
+        item.receiverAddress3 = null;
+        item.city = contactAddress.city ?? '';
+        item.zip = contactAddress.zip ?? '';
+        item.receiverContact = item.customer_name || '';
+        item.reference2 = null;
+        item.specialInstructions = null;
+        item.serviceCode = item.service_code?.service_code || '';
+        item.numberOfItems = item.service_code?.number_of_items || 0;
+        item.totalWeight = item.service_code?.total_weight || 0;
+        item.totalCubicVolume = item.service_code?.total_cubic_volume || 0;
+        item.authorityToLeave = 'Y';
 
         let newItem = {};
         for (const [header, key] of Object.entries(headers)) {
